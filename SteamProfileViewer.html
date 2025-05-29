@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam 프로필 뷰어</title>
+    <style>
+        :root { 
+            --steam-bg-dark: #1b2838;
+            --steam-bg-darker: #171a21;
+            --steam-bg-light: #2a3f5a;
+            --steam-blue: #1a9fff;
+            --steam-blue-hover: #66c0f4;
+            --steam-text: #c7d5e0;
+            --steam-text-bright: #ffffff;
+            --steam-green: #5c7e10;
+            --steam-card-bg: rgba(42, 63, 90, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background-color: var(--steam-bg-dark);
+            color: var(--steam-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--steam-bg-darker);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            color: var(--steam-text-bright);
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 28px;
+        }
+
+        /* Main Content */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .search-title {
+            color: var(--steam-text-bright);
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .search-description {
+            color: var(--steam-text);
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+
+        .search-form {
+            display: flex;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            background-color: rgba(0, 0, 0, 0.2);
+            color: var(--steam-text-bright);
+            border: 1px solid var(--steam-bg-light);
+            border-right: none;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--steam-blue);
+        }
+
+        .search-button {
+            background-color: var(--steam-blue);
+            color: var(--steam-text-bright);
+            border: none;
+            padding: 0 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .search-button:hover {
+            background-color: var(--steam-blue-hover);
+        }
+
+        /* Results Container */
+        .results-container {
+            width: 100%;
+            display: none; /* 초기에는 숨김 */
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            background-color: var(--steam-card-bg);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
+            margin-right: 20px;
+            background-color: var(--steam-bg-light);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            color: var(--steam-text-bright);
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .profile-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            color: var(--steam-blue);
+            font-weight: bold;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .card {
+            background-color: var(--steam-card-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background-color: var(--steam-bg-darker);
+            padding: 12px 15px;
+            color: var(--steam-text-bright);
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 1px solid var(--steam-bg-light);
+        }
+
+        .card-content {
+            padding: 15px;
+        }
+
+        .game-item {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .game-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .game-image {
+            width: 60px;
+            height: 60px;
+            background-color: var(--steam-bg-light);
+            margin-right: 15px;
+            border-radius: 3px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .game-details {
+            flex: 1;
+        }
+
+        .game-title {
+            color: var(--steam-text-bright);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .game-stats {
+            font-size: 12px;
+            color: var(--steam-text);
+        }
+
+        .hours-played {
+            color: var(--steam-blue);
+        }
+
+        .achievement {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .achievement:last-child {
+            margin-bottom: 0;
+        }
+
+        .achievement-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--steam-bg-light);
+            margin-right: 15px;
+            border-radius: 3px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .achievement-details {
+            flex: 1;
+        }
+
+        .achievement-title {
+            color: var(--steam-text-bright);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .achievement-date {
+            font-size: 12px;
+            color: var(--steam-text);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--steam-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: rgba(231, 76, 60, 0.1);
+            border-radius: 4px;
+            display: none;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--steam-bg-darker);
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--steam-text);
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-container {
+                padding: 0 15px;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .profile-avatar {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .profile-stats {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">🎮</span>
+            <span>STEAM 프로필 뷰어</span>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="search-container">
+            <h1 class="search-title">Steam 프로필 검색</h1>
+            <p class="search-description">Steam Id을 입력하여 게임 통계, 도전과제 등의 정보를 확인하세요.
+                <br>
+                Steam Id 는 17자리 정수로 된 고유 Id 입니다. 계정 관리에서 확인가능
+                76561198181739210
+            </p>
+            <form class="search-form" id="search-form">
+                <input type="text" class="search-input" id="steam-id" placeholder="Steam 사용자명 또는 ID 입력..." required>
+                <button type="submit" class="search-button">검색</button>
+            </form>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>데이터를 불러오는 중...</p>
+        </div>
+
+        <div class="error-message" id="error-message">
+            사용자를 찾을 수 없거나 프로필이 비공개입니다. 다른 사용자명을 입력해주세요.
+        </div>
+
+        <div class="results-container" id="results-container">
+            <div class="profile-header" id="profile-header">
+                <div class="profile-avatar" id="profile-avatar"></div>
+                <div class="profile-info">
+                    <h2 class="profile-name" id="profile-name">사용자명</h2>
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <span>게임 수</span>
+                            <span class="stat-value" id="games-count">0</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span>총 플레이 시간</span>
+                            <span class="stat-value" id="total-playtime">0시간</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span>도전과제</span>
+                            <span class="stat-value" id="achievements-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">가장 많이 플레이한 게임</div>
+                    <div class="card-content" id="most-played-games">
+                        <!-- 동적으로 생성될 게임 아이템 -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">최근 플레이한 게임</div>
+                    <div class="card-content" id="recently-played-games">
+                        <!-- 동적으로 생성될 게임 아이템 -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">최로로 플레이한 게임</div>
+                    <div class="card-content" id="recently-played-games">
+                        <!-- 동적으로 생성될 게임 아이템 -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">가장 오래된 도전과제</div>
+                    <div class="card-content" id="oldest-achievements">
+                        <!-- 동적으로 생성될 도전과제 아이템 -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">최근 달성한 도전과제</div>
+                    <div class="card-content" id="recent-achievements">
+                        <!-- 동적으로 생성될 도전과제 아이템 -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">현재까지 사용한 금액(할인 적용X)</div>
+                    <div class="card-content" id="recent-achievements">
+                        <!-- 동적으로 생성될 도전과제 아이템 -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">사놓고 안한게임</div>
+                    <div class="card-content" id="recent-achievements">
+                        <!-- 동적으로 생성될 도전과제 아이템 -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">뽕 뽑은 게임</div>
+                    <div class="card-content" id="recent-achievements">
+                        <!-- 동적으로 생성될 도전과제 아이템 -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">도전과제 완료 비율이 높은 게임</div>
+                    <div class="card-content" id="recent-achievements">
+                        <!-- 동적으로 생성될 도전과제 아이템 -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2025 Steam 프로필 뷰어 - v0로 생성됨</p>
+        <p>이 페이지는 Steam Web API를 사용하여 만들어졌습니다. Valve Corporation과 직접적인 관련이 없습니다.</p>
+    </footer>
+
+    <script>
+        // DOM 요소
+        const searchForm = document.getElementById('search-form');
+        const steamIdInput = document.getElementById('steam-id');
+        const loadingElement = document.getElementById('loading');
+        const errorMessage = document.getElementById('error-message');
+        const resultsContainer = document.getElementById('results-container');
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileName = document.getElementById('profile-name');
+        const gamesCount = document.getElementById('games-count');
+        const totalPlaytime = document.getElementById('total-playtime');
+        const achievementsCount = document.getElementById('achievements-count');
+        const mostPlayedGames = document.getElementById('most-played-games');
+        const recentlyPlayedGames = document.getElementById('recently-played-games');
+        const oldestAchievements = document.getElementById('oldest-achievements');
+        const recentAchievements = document.getElementById('recent-achievements');
+
+        // 폼 제출 이벤트 리스너
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const steamId = steamIdInput.value.trim();
+            
+            if (steamId) {
+                // UI 초기화
+                resetUI();
+                
+                // 로딩 표시
+                loadingElement.style.display = 'block';
+                
+                // 실제 구현에서는 여기서 Steam API를 호출합니다
+                // 여기서는 데모 데이터로 UI를 채웁니다
+                setTimeout(() => {
+                    fetchMockData(steamId);
+                }, 1500);
+            }
+        });
+
+        // UI 초기화 함수
+        function resetUI() {
+            errorMessage.style.display = 'none';
+            resultsContainer.style.display = 'none';
+            mostPlayedGames.innerHTML = '';
+            recentlyPlayedGames.innerHTML = '';
+            oldestAchievements.innerHTML = '';
+            recentAchievements.innerHTML = '';
+        }
+
+        // 모의 데이터 가져오기 (실제 구현에서는 Steam API 호출)
+        async function fetchMockData(steamId) {
+            // 실제 구현에서는 이 부분이 Steam API 호출 코드로 대체됩니다
+            // 예: fetchSteamUserData(steamId), fetchSteamGames(steamId) 등
+            
+            // 모의 데이터
+
+            /*
+            const apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
+
+            const mockData = await fetch(`http://localhost:3000/api?steamId=${steamId}&apiKey=${apiKey}`)
+            console.log(await mockData.json())
+            */
+            
+            
+            const mockData = {
+                profile: {
+                    name: steamId,
+                    avatar: 'https://via.placeholder.com/80x80/2a3f5a/c7d5e0?text=Avatar',
+                    gamesCount: 142,
+                    totalPlaytime: 3728,
+                    achievementsCount: 1256
+                },
+                mostPlayedGames: [
+                    { name: 'Counter-Strike 2', hours: 1245, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=CS2' },
+                    { name: 'Dota 2', hours: 876, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=Dota2' },
+                    { name: 'Team Fortress 2', hours: 543, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=TF2' }
+                ],
+                recentlyPlayedGames: [
+                    { name: 'Baldur\'s Gate 3', hours: 42, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=BG3' },
+                    { name: 'Elden Ring', hours: 128, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=Elden' },
+                    { name: 'Cyberpunk 2077', hours: 76, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=CP2077' }
+                ],
+                oldestAchievements: [
+                    { name: '첫 승리', game: 'Half-Life 2', date: '2010-05-12', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=HL2' },
+                    { name: '헤드샷 마스터', game: 'Counter-Strike: Source', date: '2011-02-23', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=CSS' },
+                    { name: '100% 완료', game: 'Portal', date: '2011-08-15', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=Portal' }
+                ],
+                recentAchievements: [
+                    { name: '전설적인 무기', game: 'Baldur\'s Gate 3', date: '2025-05-18', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=BG3' },
+                    { name: '최종 보스 처치', game: 'Elden Ring', date: '2025-05-10', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=Elden' },
+                    { name: '모든 엔딩 보기', game: 'Cyberpunk 2077', date: '2025-04-30', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=CP2077' }
+                ]
+            };
+            
+            // 데이터 표시
+            displayData(mockData);
+        }
+
+        // 데이터 표시 함수
+        function displayData(data) {
+            // 로딩 숨기기
+            loadingElement.style.display = 'none';
+            
+            // 프로필 정보 표시
+            profileAvatar.style.backgroundImage = `url(${data.profile.avatar})`;
+            profileName.textContent = data.profile.name;
+            gamesCount.textContent = data.profile.gamesCount;
+            totalPlaytime.textContent = `${data.profile.totalPlaytime}시간`;
+            achievementsCount.textContent = data.profile.achievementsCount;
+            
+            // 가장 많이 플레이한 게임
+            data.mostPlayedGames.forEach(game => {
+                const gameElement = createGameElement(game);
+                mostPlayedGames.appendChild(gameElement);
+            });
+            
+            // 최근 플레이한 게임
+            data.recentlyPlayedGames.forEach(game => {
+                const gameElement = createGameElement(game);
+                recentlyPlayedGames.appendChild(gameElement);
+            });
+            
+            // 가장 오래된 도전과제
+            data.oldestAchievements.forEach(achievement => {
+                const achievementElement = createAchievementElement(achievement);
+                oldestAchievements.appendChild(achievementElement);
+            });
+            
+            // 최근 달성한 도전과제
+            data.recentAchievements.forEach(achievement => {
+                const achievementElement = createAchievementElement(achievement);
+                recentAchievements.appendChild(achievementElement);
+            });
+            
+            // 결과 컨테이너 표시
+            resultsContainer.style.display = 'block';
+        }
+
+        // 게임 요소 생성 함수
+        function createGameElement(game) {
+            const gameElement = document.createElement('div');
+            gameElement.className = 'game-item';
+            
+            gameElement.innerHTML = `
+                <div class="game-image" style="background-image: url('${game.image}')"></div>
+                <div class="game-details">
+                    <div class="game-title">${game.name}</div>
+                    <div class="game-stats">
+                        <span class="hours-played">${game.hours}시간 플레이</span>
+                    </div>
+                </div>
+            `;
+            
+            return gameElement;
+        }
+
+        // 도전과제 요소 생성 함수
+        function createAchievementElement(achievement) {
+            const achievementElement = document.createElement('div');
+            achievementElement.className = 'achievement';
+            
+            achievementElement.innerHTML = `
+                <div class="achievement-icon" style="background-image: url('${achievement.image}')"></div>
+                <div class="achievement-details">
+                    <div class="achievement-title">${achievement.name}</div>
+                    <div class="achievement-date">${achievement.game} • ${formatDate(achievement.date)}</div>
+                </div>
+            `;
+            
+            return achievementElement;
+        }
+
+        // 날짜 포맷 함수
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        // 실제 Steam API 호출 함수 (실제 구현 시 사용)
+        /*
+        async function fetchSteamUserData(steamId) {
+            // Steam API 키는 환경 변수나 설정에서 가져와야 합니다
+            const apiKey = 'YOUR_STEAM_API_KEY';
+            
+            try {
+                // Steam ID 변환 (사용자명 -> Steam ID)
+                const vanityResponse = await fetch(`https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${apiKey}&vanityurl=${steamId}`);
+                const vanityData = await vanityResponse.json();
+                
+                let steamID64;
+                if (vanityData.response.success === 1) {
+                    steamID64 = vanityData.response.steamid;
+                } else {
+                    // 입력이 이미 Steam ID인 경우
+                    steamID64 = steamId;
+                }
+                
+                // 사용자 정보 가져오기
+                const userResponse = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${apiKey}&steamids=${steamID64}`);
+                const userData = await userResponse.json();
+                
+                // 게임 목록 가져오기
+                const gamesResponse = await fetch(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${apiKey}&steamid=${steamID64}&include_appinfo=true&include_played_free_games=true`);
+                const gamesData = await gamesResponse.json();
+                
+                // 도전과제 정보 가져오기 (각 게임별로 별도 API 호출 필요)
+                // ...
+                
+                // 데이터 처리 및 표시
+                // ...
+                
+            } catch (error) {
+                console.error('Steam API 호출 중 오류 발생:', error);
+                errorMessage.style.display = 'block';
+                loadingElement.style.display = 'none';
+            }
+        }
+        */
+    </script>
+</body>
+</html>
