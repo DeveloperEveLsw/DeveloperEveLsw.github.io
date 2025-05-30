@@ -474,11 +474,12 @@
     </main>
 
     <footer class="footer">
-        <p>© 2025 Steam 프로필 뷰어 - v0로 생성됨</p>
+        <p>© 2025 Steam 프로필 뷰어 - 2233056 이선우</p>
         <p>이 페이지는 Steam Web API를 사용하여 만들어졌습니다. Valve Corporation과 직접적인 관련이 없습니다.</p>
     </footer>
 
     <script>
+        
         // DOM 요소
         const searchForm = document.getElementById('search-form');
         const steamIdInput = document.getElementById('steam-id');
@@ -525,6 +526,8 @@
             recentAchievements.innerHTML = '';
         }
 
+        var body =""
+        
         // 모의 데이터 가져오기 (실제 구현에서는 Steam API 호출)
         async function fetchMockData(steamId) {
             // 실제 구현에서는 이 부분이 Steam API 호출 코드로 대체됩니다
@@ -532,15 +535,16 @@
             
             // 모의 데이터
 
-            /*
+            
             const apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
 
             const mockData = await fetch(`http://localhost:3000/api?steamId=${steamId}&apiKey=${apiKey}`)
-            console.log(await mockData.json())
-            */
+            body = await mockData.json()
+            console.log(body)
             
             
-            const mockData = {
+            
+            const mocData = {
                 profile: {
                     name: steamId,
                     avatar: 'https://via.placeholder.com/80x80/2a3f5a/c7d5e0?text=Avatar',
@@ -571,7 +575,7 @@
             };
             
             // 데이터 표시
-            displayData(mockData);
+            displayData(mocData);
         }
 
         // 데이터 표시 함수
