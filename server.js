@@ -48,7 +48,7 @@ app.get("/api", async (req, res) => {
         const games = (await Promise.all(
             // 게임 목록을 가지고 map 메서드를 각각의 appid를 기반으로 게임 정보를 요청을 보냄
             appids.map(async appid => {
-                const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appid}&filters=price_overview,release_date`
+                const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appid}&filters=price_overview,release_date  `
                 ).then( body => body.json())
                 return res[appid].success ? res : null
             })
@@ -64,7 +64,12 @@ app.get("/api", async (req, res) => {
                 ).then( body => body.json())
                 return res.game && res.game.gameVersion ? {[appid]: res} : null
             })
-        )).filter(item => item !== null );
+        )).filter(item => item !== null
+        ).reduce((acc, obj) => {
+            return { ...acc, ...obj };
+        }, {});
+
+
 
         // 각 게임별 사용자의 도전과제 정보(클리어 정보, 클리어 시간 등등)
         // 이 경우도 appid를 추가하여줌 (새로운 Object를 만들지 않고 동적으로 키 추가)
@@ -74,10 +79,13 @@ app.get("/api", async (req, res) => {
                 ).then(body => body.json())
                 return res.playerstats.success ? {[appid]: res} : null
             })
-        )).filter(item => item !== null)
+        )).filter(item => item !== null
+        ).reduce((acc, obj) => {
+            return { ...acc, ...obj };
+        }, {});
 
         res_body = {
-            PlayerInfo: PlayerInfo.response,
+            PlayerInfo: PlayerInfo.response.players[0],
             OwnedGames: OwnedGames.response,
             games: games,
             achievements: achievements,

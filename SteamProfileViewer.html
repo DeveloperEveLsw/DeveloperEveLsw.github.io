@@ -149,6 +149,7 @@
             border-radius: 4px;
             margin-right: 20px;
             background-color: var(--steam-bg-light);
+            background-size: cover;
         }
 
         .profile-info {
@@ -421,13 +422,6 @@
                 </div>
                 
                 <div class="card">
-                    <div class="card-header">최로로 플레이한 게임</div>
-                    <div class="card-content" id="recently-played-games">
-                        <!-- 동적으로 생성될 게임 아이템 -->
-                    </div>
-                </div>
-                
-                <div class="card">
                     <div class="card-header">가장 오래된 도전과제</div>
                     <div class="card-content" id="oldest-achievements">
                         <!-- 동적으로 생성될 도전과제 아이템 -->
@@ -469,6 +463,55 @@
                     </div>
                 </div>
 
+                <!-- 기존 cards-grid 안에 추가할 4개의 카드 -->
+
+                <!-- 1. 현재까지 사용한 금액 카드 -->
+                <div class="card">
+                    <div class="card-header">💰 총 지출 금액</div>
+                    <div class="card-content">
+                        <div class="total-amount">
+                            <span class="amount-label">총 지출</span>
+                            <span class="amount-value" id="total-spent">₩0</span>
+                        </div>
+                        <div class="expensive-games" id="expensive-games">
+                            <!-- 동적으로 생성될 비싼 게임 목록 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 사놓고 안한 게임 카드 -->
+                <div class="card">
+                    <div class="card-header">😴 사놓고 안한 게임</div>
+                    <div class="card-content">
+                        <div class="total-amount">
+                            <span class="amount-label">낭비한 금액</span>
+                            <span class="amount-value waste-amount" id="wasted-amount">₩0</span>
+                        </div>
+                        <div class="unplayed-games" id="unplayed-games">
+                            <!-- 동적으로 생성될 미플레이 게임 목록 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 뽕 뽑은 게임 카드 -->
+                <div class="card">
+                    <div class="card-header">🎯 뽕 뽑은 게임</div>
+                    <div class="card-content">
+                        <div class="value-games" id="value-games">
+                            <!-- 동적으로 생성될 가성비 게임 목록 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 도전과제 완료 비율이 높은 게임 카드 -->
+                <div class="card">
+                    <div class="card-header">🏆 도전과제 마스터</div>
+                    <div class="card-content">
+                        <div class="achievement-games" id="achievement-games">
+                            <!-- 동적으로 생성될 도전과제 완료율 높은 게임 목록 -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -527,7 +570,51 @@
         }
 
         var body =""
-        
+
+
+        function getTop3WithSorting_game(games, callback) {
+            return games.sort( 
+                (a,b)=> callback(b) - callback(a) 
+            ).slice(0, 3
+            ).map((item)=>{
+                const gameData = {
+                    name: item.name,
+                    hours: parseInt(item.playtime_forever/60),
+                    image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
+                }
+                return gameData
+            })
+        }
+
+        function getTop3WithSorting_achievements(playerAchi, achievements, callback) {
+            return Object.keys(playerAchi 
+            ).filter( (key)=> playerAchi[key].playerstats.achievements 
+            ).flatMap(key => {
+                return playerAchi[key].playerstats.achievements.map(item => ({...item, appid:key })) 
+            } 
+            ).filter( item => item.unlocktime != 0
+            ).sort(
+                (a,b)=> callback(b) - callback(a)
+            ).slice(0,3
+            ).map((item)=>{
+                const key = item.appid
+                const achiInfo = achievements[key].game.availableGameStats.achievements.filter(
+                    e => e.name == item.apiname  
+                )[0]
+                console.log(achiInfo)
+                const achiData = {
+                    name: achiInfo.displayName,
+                    game: playerAchi[key].playerstats.gameName,
+                    date: item.unlocktime,
+                    image: achiInfo.icon
+                } 
+                console.log(achiData)
+                return achiData
+            })
+        }
+//{ name: '첫 승리', game: 'Half-Life 2', date: '2010-05-12', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=HL2' },
+
+
         // 모의 데이터 가져오기 (실제 구현에서는 Steam API 호출)
         async function fetchMockData(steamId) {
             // 실제 구현에서는 이 부분이 Steam API 호출 코드로 대체됩니다
@@ -538,12 +625,61 @@
             
             const apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
 
-            const mockData = await fetch(`http://localhost:3000/api?steamId=${steamId}&apiKey=${apiKey}`)
-            body = await mockData.json()
-            console.log(body)
+            const res = await fetch(`http://localhost:3000/api?steamId=${steamId}&apiKey=${apiKey}`)
+            const body = await res.json()
+
+            let PlayerInfo = body.PlayerInfo;
+            const games = body.games;
+            const playerAchievements = body.playerAchievements; 
+            const OwnedGames = body.OwnedGames;
+            const achievements = body.achievements
+            console.log(achievements)
+            console.log(playerAchievements)
+
+            let achiCnt = 0;
+
+            const keys = Object.keys(playerAchievements)
+            for (key of keys) {
+                if (playerAchievements[key].playerstats.achievements) {
+                    for (achi of playerAchievements[key].playerstats.achievements) {
+                        if (achi.achieved) { achiCnt++ }
+                    }
+                }
+            }
             
-            
-            
+            let sum = 0
+            for (i of OwnedGames.games) {
+                sum += i.playtime_forever
+            }
+            console.log(sum)
+
+            let top3 = OwnedGames.games.sort( (a,b)=> b.playtime_forever-a.playtime_forever ).slice(0, 3
+            ).map((item)=>{
+                const gameData = {
+                    name: item.name,
+                    hours: parseInt(item.playtime_forever/60),
+                    image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
+                }
+                return gameData
+            });
+
+            PlayerInfo.achievementsCount = achiCnt
+
+            const mockData = {
+                profile: {
+                    name: PlayerInfo.personaname,
+                    avatar: "https://avatars.steamstatic.com/c13361fe7cf0f59a71cd2f84936ec39c8a12074f_full.jpg",
+                    gamesCount: OwnedGames.game_count,
+                    achievementsCount: PlayerInfo.achievementsCount,
+                    totalPlaytime: parseInt(sum/60)
+                },
+                mostPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.playtime_forever),
+                recentlyPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.rtime_last_played),
+                oldestAchievements: getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> -e.unlocktime),
+                recentAchievements: getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> e.unlocktime)
+            }
+
+            /*
             const mocData = {
                 profile: {
                     name: steamId,
@@ -572,10 +708,10 @@
                     { name: '최종 보스 처치', game: 'Elden Ring', date: '2025-05-10', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=Elden' },
                     { name: '모든 엔딩 보기', game: 'Cyberpunk 2077', date: '2025-04-30', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=CP2077' }
                 ]
-            };
+            }; */
             
             // 데이터 표시
-            displayData(mocData);
+            displayData(mockData);
         }
 
         // 데이터 표시 함수
@@ -607,13 +743,13 @@
                 const achievementElement = createAchievementElement(achievement);
                 oldestAchievements.appendChild(achievementElement);
             });
-            
+
             // 최근 달성한 도전과제
             data.recentAchievements.forEach(achievement => {
                 const achievementElement = createAchievementElement(achievement);
                 recentAchievements.appendChild(achievementElement);
             });
-            
+
             // 결과 컨테이너 표시
             resultsContainer.style.display = 'block';
         }
@@ -654,7 +790,8 @@
 
         // 날짜 포맷 함수
         function formatDate(dateString) {
-            const date = new Date(dateString);
+            const date = new Date(dateString*1000);
+            console.log(date.getFullYear())
             return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
         }
 
