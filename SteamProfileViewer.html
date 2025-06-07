@@ -435,34 +435,6 @@
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header">현재까지 사용한 금액(할인 적용X)</div>
-                    <div class="card-content" id="recent-achievements">
-                        <!-- 동적으로 생성될 도전과제 아이템 -->
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">사놓고 안한게임</div>
-                    <div class="card-content" id="recent-achievements">
-                        <!-- 동적으로 생성될 도전과제 아이템 -->
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">뽕 뽑은 게임</div>
-                    <div class="card-content" id="recent-achievements">
-                        <!-- 동적으로 생성될 도전과제 아이템 -->
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">도전과제 완료 비율이 높은 게임</div>
-                    <div class="card-content" id="recent-achievements">
-                        <!-- 동적으로 생성될 도전과제 아이템 -->
-                    </div>
-                </div>
-
                 <!-- 기존 cards-grid 안에 추가할 4개의 카드 -->
 
                 <!-- 1. 현재까지 사용한 금액 카드 -->
@@ -496,22 +468,20 @@
                 <!-- 3. 뽕 뽑은 게임 카드 -->
                 <div class="card">
                     <div class="card-header">🎯 뽕 뽑은 게임</div>
-                    <div class="card-content">
-                        <div class="value-games" id="value-games">
-                            <!-- 동적으로 생성될 가성비 게임 목록 -->
-                        </div>
+                    <div class="card-content" id="value-games">
+                        <!-- 동적으로 생성될 가성비 게임 목록 -->ㄴ
                     </div>
                 </div>
 
                 <!-- 4. 도전과제 완료 비율이 높은 게임 카드 -->
                 <div class="card">
                     <div class="card-header">🏆 도전과제 마스터</div>
-                    <div class="card-content">
-                        <div class="achievement-games" id="achievement-games">
-                            <!-- 동적으로 생성될 도전과제 완료율 높은 게임 목록 -->
-                        </div>
+                    <div class="card-content" id="achievement-games">
+                        <!-- 동적으로 생성될 도전과제 완료율 높은 게임 목록 -->
+                        
                     </div>
                 </div>
+
             </div>
         </div>
     </main>
@@ -534,10 +504,21 @@
         const gamesCount = document.getElementById('games-count');
         const totalPlaytime = document.getElementById('total-playtime');
         const achievementsCount = document.getElementById('achievements-count');
+
         const mostPlayedGames = document.getElementById('most-played-games');
         const recentlyPlayedGames = document.getElementById('recently-played-games');
         const oldestAchievements = document.getElementById('oldest-achievements');
         const recentAchievements = document.getElementById('recent-achievements');
+
+        const totalSpent = document.getElementById("total-spent");
+        const expensiveGames = document.getElementById("expensive-games");
+
+        const wastedAmount = document.getElementById("wasted-amount");
+        const unplayedGames = document.getElementById("unplayed-games");
+
+        const valueGames = document.getElementById("value-games");
+        const achievementGames = document.getElementById("achievement-games");
+
 
         // 폼 제출 이벤트 리스너
         searchForm.addEventListener('submit', function(e) {
@@ -551,8 +532,6 @@
                 // 로딩 표시
                 loadingElement.style.display = 'block';
                 
-                // 실제 구현에서는 여기서 Steam API를 호출합니다
-                // 여기서는 데모 데이터로 UI를 채웁니다
                 setTimeout(() => {
                     fetchMockData(steamId);
                 }, 1500);
@@ -567,19 +546,68 @@
             recentlyPlayedGames.innerHTML = '';
             oldestAchievements.innerHTML = '';
             recentAchievements.innerHTML = '';
+
+            totalSpent.innerHTML = '';
+            expensiveGames.innerHTML = '';
+
+            wastedAmount.innerHTML = '';
+            unplayedGames.innerHTML = '';
+
+            valueGames.innerHTML = '';
+            achievementGames.innerHTML = '';
         }
 
         var body =""
 
-
-        function getTop3WithSorting_game(games, callback) {
-            return games.sort( 
+        // --------------------------- 여기서 부터 데이터 처리 함수 입니다 -------------------------------
+        function getTop3WithSorting_game(games, callback, data, filter=(e)=>e) {
+            console.log(games)
+            return games.filter(filter).sort( 
                 (a,b)=> callback(b) - callback(a) 
             ).slice(0, 3
             ).map((item)=>{
                 const gameData = {
                     name: item.name,
-                    hours: parseInt(item.playtime_forever/60),
+                    data: data(item),
+                    image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
+                }
+                return gameData
+            })
+        }
+
+        function getTop3WithSorting_game_with_achievements(games, playerAchi) {
+            clearRate = Object.keys(playerAchi                
+            ).filter((key)=> playerAchi[key].playerstats.achievements && playerAchi[key].playerstats.achievements.length > 10
+            ).map( key=>{
+                let achieved = 0
+                let total = playerAchi[key].playerstats.achievements.length
+
+                playerAchi[key].playerstats.achievements.forEach(achievement=>{
+                    if (achievement.achieved) { achieved += 1 }
+                })
+                return {
+                    appid: key,
+                    total: total,
+                    achievedCount: achieved
+                }
+            }).flatMap(item=> [[item.appid, {total:item.total, achievedCount: item.achievedCount}]]                
+            ).reduce((acc, [key, obj])=> ({...acc, [key]: obj}))
+
+            console.log(clearRate);
+
+            return games.filter((item)=>{
+                return clearRate[item.appid]
+            }).sort( 
+                (a,b)=> {
+                    item1 = clearRate[a.appid].achievedCount / clearRate[a.appid].total
+                    item2 = clearRate[b.appid].achievedCount / clearRate[b.appid].total
+                    return item2 - item1
+                }
+            ).slice(0, 3
+            ).map((item)=>{
+                const gameData = {
+                    name: item.name,
+                    data: [clearRate[item.appid].achievedCount, clearRate[item.appid].total],
                     image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
                 }
                 return gameData
@@ -601,18 +629,39 @@
                 const achiInfo = achievements[key].game.availableGameStats.achievements.filter(
                     e => e.name == item.apiname  
                 )[0]
-                console.log(achiInfo)
+                //console.log(achiInfo)
                 const achiData = {
                     name: achiInfo.displayName,
                     game: playerAchi[key].playerstats.gameName,
                     date: item.unlocktime,
                     image: achiInfo.icon
                 } 
-                console.log(achiData)
+                //console.log(achiData)
                 return achiData
             })
         }
-//{ name: '첫 승리', game: 'Half-Life 2', date: '2010-05-12', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=HL2' },
+
+        function sum_price(games) {
+            let total_price = 0
+            Object.keys(games
+            ).filter( key=> games[key].data.price_overview
+            ).map((key)=> games[key]
+            ).forEach((item)=>{
+                total_price += item.data.price_overview.final
+            })
+            console.log(total_price)
+            return parseInt(total_price/100)
+        }
+
+
+        function sum_price_unplayed(games) {
+            let total_price = 0
+            games.filter((game)=>game.price > 0 && game.playtime_forever < 30
+            ).forEach(game=> { total_price += game.price })
+            return parseInt(total_price/100)
+        }
+        
+        // --------------------------- 여기 까지가 데이터 처리 함수 입니다 -------------------------------
 
 
         // 모의 데이터 가져오기 (실제 구현에서는 Steam API 호출)
@@ -633,9 +682,12 @@
             const playerAchievements = body.playerAchievements; 
             const OwnedGames = body.OwnedGames;
             const achievements = body.achievements
+
             console.log(achievements)
             console.log(playerAchievements)
-
+            console.log(games)
+            console.log(OwnedGames)
+            
             let achiCnt = 0;
 
             const keys = Object.keys(playerAchievements)
@@ -646,22 +698,6 @@
                     }
                 }
             }
-            
-            let sum = 0
-            for (i of OwnedGames.games) {
-                sum += i.playtime_forever
-            }
-            console.log(sum)
-
-            let top3 = OwnedGames.games.sort( (a,b)=> b.playtime_forever-a.playtime_forever ).slice(0, 3
-            ).map((item)=>{
-                const gameData = {
-                    name: item.name,
-                    hours: parseInt(item.playtime_forever/60),
-                    image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
-                }
-                return gameData
-            });
 
             PlayerInfo.achievementsCount = achiCnt
 
@@ -671,45 +707,33 @@
                     avatar: "https://avatars.steamstatic.com/c13361fe7cf0f59a71cd2f84936ec39c8a12074f_full.jpg",
                     gamesCount: OwnedGames.game_count,
                     achievementsCount: PlayerInfo.achievementsCount,
-                    totalPlaytime: parseInt(sum/60)
+                    totalPlaytime: parseInt((OwnedGames.games.reduce((acc, game)=>acc+game.playtime_forever))/60)
                 },
-                mostPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.playtime_forever),
-                recentlyPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.rtime_last_played),
+                mostPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.playtime_forever, (data) => parseInt(data.playtime_forever/60)),
+                recentlyPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.rtime_last_played, (data)=> parseInt(data.playtime_forever/60)),
                 oldestAchievements: getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> -e.unlocktime),
-                recentAchievements: getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> e.unlocktime)
+                recentAchievements: getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> e.unlocktime),
+                totalSpent: sum_price(games),
+                expensiveGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.price, (data)=> parseInt(data.price/100)),
+                valueGames: getTop3WithSorting_game(OwnedGames.games, (e)=> {
+                    if (e.price == 0) {
+                        return -99999999999
+                    }
+                    else {
+                        return -(e.price/e.playtime_forever)
+                    }
+                }, (data)=> {
+                    const price = parseInt(data.price/100);
+                    const playTime = parseInt(data.playtime_forever/60)
+                    console.log(price)
+                    console.log(playTime)
+                    return parseInt(price/playTime)
+                }),
+                wastedAmount: sum_price_unplayed(OwnedGames.games),
+                unplayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.price, (data)=> parseInt(data.price/100), (game)=>game.playtime_forever < 30),
+                achievementGames: getTop3WithSorting_game_with_achievements(OwnedGames.games, playerAchievements)
             }
 
-            /*
-            const mocData = {
-                profile: {
-                    name: steamId,
-                    avatar: 'https://via.placeholder.com/80x80/2a3f5a/c7d5e0?text=Avatar',
-                    gamesCount: 142,
-                    totalPlaytime: 3728,
-                    achievementsCount: 1256
-                },
-                mostPlayedGames: [
-                    { name: 'Counter-Strike 2', hours: 1245, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=CS2' },
-                    { name: 'Dota 2', hours: 876, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=Dota2' },
-                    { name: 'Team Fortress 2', hours: 543, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=TF2' }
-                ],
-                recentlyPlayedGames: [
-                    { name: 'Baldur\'s Gate 3', hours: 42, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=BG3' },
-                    { name: 'Elden Ring', hours: 128, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=Elden' },
-                    { name: 'Cyberpunk 2077', hours: 76, image: 'https://via.placeholder.com/60x60/2a3f5a/c7d5e0?text=CP2077' }
-                ],
-                oldestAchievements: [
-                    { name: '첫 승리', game: 'Half-Life 2', date: '2010-05-12', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=HL2' },
-                    { name: '헤드샷 마스터', game: 'Counter-Strike: Source', date: '2011-02-23', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=CSS' },
-                    { name: '100% 완료', game: 'Portal', date: '2011-08-15', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=Portal' }
-                ],
-                recentAchievements: [
-                    { name: '전설적인 무기', game: 'Baldur\'s Gate 3', date: '2025-05-18', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=BG3' },
-                    { name: '최종 보스 처치', game: 'Elden Ring', date: '2025-05-10', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=Elden' },
-                    { name: '모든 엔딩 보기', game: 'Cyberpunk 2077', date: '2025-04-30', image: 'https://via.placeholder.com/40x40/2a3f5a/c7d5e0?text=CP2077' }
-                ]
-            }; */
-            
             // 데이터 표시
             displayData(mockData);
         }
@@ -728,13 +752,13 @@
             
             // 가장 많이 플레이한 게임
             data.mostPlayedGames.forEach(game => {
-                const gameElement = createGameElement(game);
+                const gameElement = createGameElement(game, (data)=> (data+"시간 플레이"));
                 mostPlayedGames.appendChild(gameElement);
             });
             
             // 최근 플레이한 게임
             data.recentlyPlayedGames.forEach(game => {
-                const gameElement = createGameElement(game);
+                const gameElement = createGameElement(game, (data)=> (data+"시간 플레이"));
                 recentlyPlayedGames.appendChild(gameElement);
             });
             
@@ -750,12 +774,40 @@
                 recentAchievements.appendChild(achievementElement);
             });
 
+            // 총 지출 카드
+            totalSpent.innerText = data.totalSpent+"원"
+            data.expensiveGames.forEach(game => {
+                const gameElement = createGameElement(game, (data)=> (data+"원"));
+                expensiveGames.appendChild(gameElement);
+            })
+
+            // 사놓고 안한게임
+            wastedAmount.innerText = data.wastedAmount+"원"
+            data.unplayedGames.forEach(game => {
+                const gameElement = createGameElement(game, (data)=> (data+"원"));
+                unplayedGames.appendChild(gameElement);
+            })
+
+            // 뽕뽑은 게임
+            data.valueGames.forEach(game => {
+                const gameElement = createGameElement(game, (data)=> ("1시간 당 가격 "+data+"원"));
+                valueGames.appendChild(gameElement);
+            })
+
+            data.achievementGames.forEach(game => {
+                const gameElement = createGameElement(game, (data)=> ("도전과제 클리어 "+data[0]+"/"+data[1]));
+                achievementGames.appendChild(gameElement);
+            })
+
+
+            console.log(data.achievementGames)
+
             // 결과 컨테이너 표시
             resultsContainer.style.display = 'block';
         }
 
         // 게임 요소 생성 함수
-        function createGameElement(game) {
+        function createGameElement(game, how_display) {
             const gameElement = document.createElement('div');
             gameElement.className = 'game-item';
             
@@ -764,7 +816,7 @@
                 <div class="game-details">
                     <div class="game-title">${game.name}</div>
                     <div class="game-stats">
-                        <span class="hours-played">${game.hours}시간 플레이</span>
+                        <span class="hours-played">${how_display(game.data)}</span>
                     </div>
                 </div>
             `;
@@ -791,50 +843,10 @@
         // 날짜 포맷 함수
         function formatDate(dateString) {
             const date = new Date(dateString*1000);
-            console.log(date.getFullYear())
+            //console.log(date.getFullYear())
             return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
         }
 
-        // 실제 Steam API 호출 함수 (실제 구현 시 사용)
-        /*
-        async function fetchSteamUserData(steamId) {
-            // Steam API 키는 환경 변수나 설정에서 가져와야 합니다
-            const apiKey = 'YOUR_STEAM_API_KEY';
-            
-            try {
-                // Steam ID 변환 (사용자명 -> Steam ID)
-                const vanityResponse = await fetch(`https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${apiKey}&vanityurl=${steamId}`);
-                const vanityData = await vanityResponse.json();
-                
-                let steamID64;
-                if (vanityData.response.success === 1) {
-                    steamID64 = vanityData.response.steamid;
-                } else {
-                    // 입력이 이미 Steam ID인 경우
-                    steamID64 = steamId;
-                }
-                
-                // 사용자 정보 가져오기
-                const userResponse = await fetch(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${apiKey}&steamids=${steamID64}`);
-                const userData = await userResponse.json();
-                
-                // 게임 목록 가져오기
-                const gamesResponse = await fetch(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${apiKey}&steamid=${steamID64}&include_appinfo=true&include_played_free_games=true`);
-                const gamesData = await gamesResponse.json();
-                
-                // 도전과제 정보 가져오기 (각 게임별로 별도 API 호출 필요)
-                // ...
-                
-                // 데이터 처리 및 표시
-                // ...
-                
-            } catch (error) {
-                console.error('Steam API 호출 중 오류 발생:', error);
-                errorMessage.style.display = 'block';
-                loadingElement.style.display = 'none';
-            }
-        }
-        */
     </script>
 </body>
 </html>
