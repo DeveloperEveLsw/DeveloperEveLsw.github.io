@@ -66,6 +66,13 @@
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
+            position: relative;
+        }
+
+        .setting-box {
+            position: absolute; /* 부모 기준으로 위치 설정 */
+            top: 10px; /* 상단에서 10px 떨어짐 */
+            right: 15px; /* 우측에서 15px 떨어짐 */
         }
 
         .search-container {
@@ -250,6 +257,10 @@
             color: var(--steam-blue);
         }
 
+        .total-amount {
+            margin-bottom: 10px;
+        }
+
         .achievement {
             display: flex;
             margin-bottom: 15px;
@@ -316,6 +327,46 @@
             display: none;
         }
 
+        .message {
+            color: var(--steam-text);
+            font-size: small;
+            text-align: center;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: rgba(75, 75, 75, 0.1);
+            border-radius: 4px;
+            display: none;
+            width: 400px;
+        }
+
+        .settings-btn {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            color: #cbd5e1;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .settings-btn:hover {
+            background: rgba(51, 65, 85, 0.7);
+            border-color: rgba(71, 85, 105, 1);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .settings-btn.icon-only {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
         /* Footer */
         .footer {
             background-color: var(--steam-bg-darker);
@@ -352,6 +403,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="apiKeyModal.css">
 </head>
 <body>
     <header class="header">
@@ -362,17 +414,31 @@
     </header>
 
     <main class="main-container">
+        <div class="setting-box">
+            <button class="settings-btn icon-only" onclick="openApiKeyModal()">
+                <svg class="gear-icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/>
+                </svg>
+            </button>
+        </div>
         <div class="search-container">
             <h1 class="search-title">Steam 프로필 검색</h1>
             <p class="search-description">Steam Id을 입력하여 게임 통계, 도전과제 등의 정보를 확인하세요.
                 <br>
                 Steam Id 는 17자리 정수로 된 고유 Id 입니다. 계정 관리에서 확인가능
-                76561198181739210
+                <br>ex) 76561198181739210
             </p>
+
             <form class="search-form" id="search-form">
                 <input type="text" class="search-input" id="steam-id" placeholder="Steam 사용자명 또는 ID 입력..." required>
                 <button type="submit" class="search-button">검색</button>
             </form>
+            
+            <div class="message" id="message">
+                프로필 정보가 공개가 아니여서 일부 정보는 누락되었습니다
+            </div>
+
+
         </div>
 
         <div class="loading" id="loading">
@@ -406,6 +472,7 @@
                 </div>
             </div>
 
+            
             <div class="cards-grid">
                 <div class="card">
                     <div class="card-header">가장 많이 플레이한 게임</div>
@@ -435,8 +502,6 @@
                     </div>
                 </div>
 
-                <!-- 기존 cards-grid 안에 추가할 4개의 카드 -->
-
                 <!-- 1. 현재까지 사용한 금액 카드 -->
                 <div class="card">
                     <div class="card-header">💰 총 지출 금액</div>
@@ -460,7 +525,7 @@
                             <span class="amount-value waste-amount" id="wasted-amount">₩0</span>
                         </div>
                         <div class="unplayed-games" id="unplayed-games">
-                            <!-- 동적으로 생성될 미플레이 게임 목록 -->
+                            <!-- 동적으로 생성될 미플레이 게임 목록(30분 미만 플레이) -->
                         </div>
                     </div>
                 </div>
@@ -484,6 +549,63 @@
 
             </div>
         </div>
+
+        <!-- ####################################################################################################### -->
+        <!-- API 키 변경 모달 html 입니다 -->
+        <!-- ####################################################################################################### -->
+        
+        <!-- 좌측 상단 톱니바퀴 아이콘 클릭시 나타나는 모달 인터페이스입니다-->
+        <!-- 관련 함수(클릭 이벤트)는 본 html 자바 스크립트 최하단에 있습니다-->
+        <div id="apiKeyModal" class="modal-overlay">
+            <div class="api-key-card">
+                <div class="modal-card-header">
+                    <div class="card-title">
+                        API 키 설정
+                    </div>
+                    <button class="close-btn" onclick="closeApiKeyModal()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="messageContainer" class="message"></div>
+
+                <form id="apiKeyForm">
+                    <div class="form-group">
+                        <label for="apiKeyInput" class="form-label">API 키</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="password" 
+                                id="apiKeyInput" 
+                                class="form-input" 
+                                placeholder="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                                autocomplete="off"
+                            >
+                            <button type="button" class="toggle-visibility" onclick="togglePasswordVisibility()">
+                                <svg id="eyeIcon" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="button-row">
+                        <button type="button" class="btn btn-secondary" onclick="closeApiKeyModal()">
+                            취소
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                            </svg>
+                            저장
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
     </main>
 
     <footer class="footer">
@@ -493,11 +615,18 @@
 
     <script>
         
+        // api 변경 기능을 만들었기 때문에 api는 전역으로 관리하며
+        // 재할당을 위해 let으로 선언
+        // 실배포를 한다면 브라우저의 로컬스토리지, 혹은 쿠키에 할당해야 할것 같습니다
+        let apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
+
         // DOM 요소
+        // 문서 객체들을 전역에 할당하여 함수내에서 사용합니다
         const searchForm = document.getElementById('search-form');
         const steamIdInput = document.getElementById('steam-id');
         const loadingElement = document.getElementById('loading');
         const errorMessage = document.getElementById('error-message');
+        const message = document.getElementById('message')
         const resultsContainer = document.getElementById('results-container');
         const profileAvatar = document.getElementById('profile-avatar');
         const profileName = document.getElementById('profile-name');
@@ -521,27 +650,33 @@
 
 
         // 폼 제출 이벤트 리스너
+        // 검색 Form 영역의 검색버튼(submit, 제출) 시 함수입니다
+        // preventDefault를 사용하여 바로 http 요청이 아닌 다른 함수 호출 후
+        // 해당 함수내에서 fetch를 사용합니다
         searchForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const steamId = steamIdInput.value.trim();
             
             if (steamId) {
-                // UI 초기화
+                // UI 초기화, 이전 요청의 정보들이 남을 수 있기에 특정 DOM 객체의 내용 및 display요소를 변경하는 함수입니다
                 resetUI();
                 
                 // 로딩 표시
                 loadingElement.style.display = 'block';
                 
-                setTimeout(() => {
-                    fetchMockData(steamId);
-                }, 1500);
+                // 실제 요청할 함수
+                fetchData(steamId)
             }
         });
 
         // UI 초기화 함수
         function resetUI() {
+            // div 박스들을 감춥니다
+            message.style.display = 'none'
             errorMessage.style.display = 'none';
             resultsContainer.style.display = 'none';
+
+            // 동적카드 영역의 내용을 비웁니다
             mostPlayedGames.innerHTML = '';
             recentlyPlayedGames.innerHTML = '';
             oldestAchievements.innerHTML = '';
@@ -557,11 +692,20 @@
             achievementGames.innerHTML = '';
         }
 
-        var body =""
-
         // --------------------------- 여기서 부터 데이터 처리 함수 입니다 -------------------------------
+        
+        // 기본적으로 모든 데이터 처리 함수의 구성은 특정 데이터를 받아서
+        // 특정 기준(callback함수로 호출시 기준을 정의)으로 정렬을 한 후 상위 3개를 형식에 맞게 뽑아내는 식입니다
+        
+        // 상위 3개의 게임을 정렬합니다. 콜백함수를 사용해 기준으로 할 값
+        // filter의 경우 '플레이 하지 않은 게임'에서 밖에 사용하지 않기 때문에
+        // 기본값을 따로 두었습니다(추후 추가한 카드이기 때문에 기존것을 수정하지 않기 위함)
         function getTop3WithSorting_game(games, callback, data, filter=(e)=>e) {
-            console.log(games)
+            //console.log(games)
+
+            // 우선 바로 필터 적용을 합니다 그 후 정렬을 합니다, 정렬 기준은 콜백함수로 정합니다
+            // 그 후 slice로 상위 3개, map 메서드를 통해 gameElement(커스텀으로 만든 생성자 함수)에 넘길수있는 값으로 만듦니다
+            // 결국 최종 리턴은 그러한 형식이 3개 들어간 배열입니다
             return games.filter(filter).sort( 
                 (a,b)=> callback(b) - callback(a) 
             ).slice(0, 3
@@ -575,29 +719,42 @@
             })
         }
 
+        // 위와 같지만 도전과제를 기준으로 정렬합니다
+        // 마지막 카드(도전과제 마스터) 에서만 사용하기 때문에 따로 콜백함수를 사용하거나 하진 않았습니다
         function getTop3WithSorting_game_with_achievements(games, playerAchi) {
-            clearRate = Object.keys(playerAchi                
+            // Object.keys의 경우 객체의 키값을 리스트 형태로 만들어서 리턴합니다
+            // 그것들중 achievements 요소가 있는(도전과제가 없는 게임이 있습니다) key만 남깁니다
+            const clearRate = Object.keys(playerAchi                
             ).filter((key)=> playerAchi[key].playerstats.achievements && playerAchi[key].playerstats.achievements.length > 10
-            ).map( key=>{
+            ).map( key=>{ // 필터한 key 값을 통해 playerAchi(게임별 사용자의 도전과제 정보)
+                          // 에 접근하여 전체 도전과제 클리어한 도전과제를 하나의 객체로 묶어서 리턴합니다
                 let achieved = 0
                 let total = playerAchi[key].playerstats.achievements.length
 
+                // playerAchi[key].playerstats.achievements에는 해당 게임의
+                // 도전과제 목록과 클리어 정보가 들어가있습니다 그걸 순회하면서 achieved에 카운트합니다 
                 playerAchi[key].playerstats.achievements.forEach(achievement=>{
                     if (achievement.achieved) { achieved += 1 }
                 })
+                // 그 다음 그걸 하나의 객체로 만들어 리턴합니다. 현재까지는 배열속 객체가 있는 이중구조입니다
                 return {
                     appid: key,
                     total: total,
                     achievedCount: achieved
-                }
+                } // 이중구조를 하나의 객체로(key로 접근하기 쉽도록)
+                  // 만들기 위해 flatMap과 reduce로 하나의 객체(appid를 키로 가지는)로 만듦니다
             }).flatMap(item=> [[item.appid, {total:item.total, achievedCount: item.achievedCount}]]                
             ).reduce((acc, [key, obj])=> ({...acc, [key]: obj}))
 
-            console.log(clearRate);
 
+            //console.log(clearRate);
+            // 최종 리턴할 리스트 입니다
             return games.filter((item)=>{
+                // 위의 clearRate(도전과제 클리어률 리스트)에 없는 게임(도전과제가 없는 게임)
+                // 의 경우 정렬이 불가하기 때문에 필터로 걸러냅니다
                 return clearRate[item.appid]
             }).sort( 
+                // 정렬 기준에서 위에서 만든 리스트를 사용합니다 그 후는 다른 함수와 같습니다
                 (a,b)=> {
                     item1 = clearRate[a.appid].achievedCount / clearRate[a.appid].total
                     item2 = clearRate[b.appid].achievedCount / clearRate[b.appid].total
@@ -614,14 +771,19 @@
             })
         }
 
+
+        // 도전과제를 정렬하는 함수입니다
+        // 도전과제 데이터의 구조가 이중 객체{키값:{},키값:{},키값:{}} 
+        // 여기서 키값은 게임코드이며 각 게임별로 도전과제가 모여있습니다
+        // 모든 도전과제를 같이 정렬해야하기 때문에 flatMap으로 하나의 배열에 묶습니다 
         function getTop3WithSorting_achievements(playerAchi, achievements, callback) {
             return Object.keys(playerAchi 
             ).filter( (key)=> playerAchi[key].playerstats.achievements 
             ).flatMap(key => {
                 return playerAchi[key].playerstats.achievements.map(item => ({...item, appid:key })) 
             } 
-            ).filter( item => item.unlocktime != 0
-            ).sort(
+            ).filter( item => item.unlocktime != 0 // 클리어하지 않은 도전과제는 필터로 제거합니다
+            ).sort( // 도전과제 정렬 콜백 함수로 기준을 호출시 정합니다
                 (a,b)=> callback(b) - callback(a)
             ).slice(0,3
             ).map((item)=>{
@@ -630,6 +792,8 @@
                     e => e.name == item.apiname  
                 )[0]
                 //console.log(achiInfo)
+
+                // 도전과제 문서 객체 생성 함수에 넘길 형식으로 만들어서 리턴합니다
                 const achiData = {
                     name: achiInfo.displayName,
                     game: playerAchi[key].playerstats.gameName,
@@ -641,6 +805,9 @@
             })
         }
 
+        // 게임 가격을 집계하는 함수입니다 reduce 함수를 과제 중후반에 알게 되었습니다
+        // 한번 사용하는 함수이기에 굳이 함수로 두지 않고 reduce 사용하여 바로
+        // 데이터 객체 넣었어도 괜찮았을것 같습니다
         function sum_price(games) {
             let total_price = 0
             Object.keys(games
@@ -653,7 +820,7 @@
             return parseInt(total_price/100)
         }
 
-
+        // 가격을 집계합니다만 플레이 타임이 30분 미만인 게임만 집계합니다
         function sum_price_unplayed(games) {
             let total_price = 0
             games.filter((game)=>game.price > 0 && game.playtime_forever < 30
@@ -663,56 +830,101 @@
         
         // --------------------------- 여기 까지가 데이터 처리 함수 입니다 -------------------------------
 
+        // fetch(비동기 처리, Promise가 반환될수 있어야함 그렇기에 async 키워드를 사용합니다 )
+        async function fetchData(steamId) {
+            // 매게변수로 받은 steamId와 전역변수 apikey를 쿼리문에 넣어서 요청합니다
+            // 해당과제에서 사용한 open api(steam web api)와 벡엔드에서 받는 통신 메서드는
+            // 전부 GET 메서드입니다
+            const res = await fetch(`http://localhost:3000/api?steamId=${steamId}&apiKey=${apiKey}`);
 
-        // 모의 데이터 가져오기 (실제 구현에서는 Steam API 호출)
-        async function fetchMockData(steamId) {
-            // 실제 구현에서는 이 부분이 Steam API 호출 코드로 대체됩니다
-            // 예: fetchSteamUserData(steamId), fetchSteamGames(steamId) 등
+            // status가 206(일부만 반환됨 일부는 실패) 일 경우 그 결과를 변수에 저장하며
+            // message div 박스를 표시합니다 message div 박스의 경우 현재까진 이 경우에만 사용하기 때문에
+            // 따로 내용을 수정해서 표시하거나 하진 않습니다
+            // 206의 경우 실패가 아니라 일부 내용만 표시하기 때문에 따로 return문을 통해 함수를 종료하진 않습니다
+            // ***************** 206 에러의 경우 사용자가 프로필일 일부 공개로 설정하여서
+            // ***************** 게임별 도전과제 정보를 볼 수 없을경우 입니다
+            if (res.status == 206) {
+                isNotPublic = res.status == 206
+                message.style.display = 'block'
+            } else { isNotPublic = res.status == 206; message.style.display = 'none';}
             
-            // 모의 데이터
-
+            //console.log("퍼블릭 : "+isNotPublic)
             
-            const apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
+            // 요청 실패일 경우엔 에러 메세지 div 박스의 내용을 수정 후 표시합니다
+            // 요청 실패이기 때문에 함수를 종료 합니다
+            if (res.status == 400) { 
+                errorMessage.innerText = "사용자를 찾을 수 없습니다. Steam 사용자명이 아닌 Steam ID(고유 17자리)를 입력하여 주세요."
+                errorMessage.style.display = 'block';
+                loadingElement.style.display = 'none';
+                return
+            }
+            // steam web api의 경우 너무 많은 요청시 임시 차단됩니다
+            // 검색 결과 기준이 정확한 기준이 없기 때문에(시간대별 다르다는 이야기가 있습니다)
+            // 따로 요청 텀을 조절하긴 힘들것같아 429에러시 실패 메세지가 나오도록 했습니다
+            if (res.status == 429) {
+                errorMessage.innerText = "API 요청이 너무 많습니다. 잠시 후 시도하여 주세요"
+                errorMessage.style.display = 'block';
+                loadingElement.style.display = 'none';
+                return}
 
-            const res = await fetch(`http://localhost:3000/api?steamId=${steamId}&apiKey=${apiKey}`)
+            if (!res.ok) {
+                errorMessage.innerText = "서버 오류입니다"
+                errorMessage.style.display = 'block';
+                loadingElement.style.display = 'none';
+                return
+            }
+
+            // 위의 검사를 통해 응답이 잘 왔으면 json을 반환 받습니다
             const body = await res.json()
 
-            let PlayerInfo = body.PlayerInfo;
+            // 이제 body의 내용들을 각각의 변수에 풉니다
+            const PlayerInfo = body.PlayerInfo;
             const games = body.games;
             const playerAchievements = body.playerAchievements; 
             const OwnedGames = body.OwnedGames;
             const achievements = body.achievements
 
-            console.log(achievements)
-            console.log(playerAchievements)
-            console.log(games)
-            console.log(OwnedGames)
-            
-            let achiCnt = 0;
+            /* 과제를 하며 계속해서 응답의 내용들을 봐가면서 데이터를 가공해야 했기에
+                콘솔문으로 출력문을 확인해가며 작업했습니다
+                429 에러 문제를 알게된후엔 메모장에 옮겨서 확인해가며 작업하였습니다
+            console.log("도전과제"+achievements)
+            console.log("도전과제 사용자 정보"+playerAchievements)
+            console.log("게임 스토어 정보"+games)
+            console.log("게임 사용자 정보"+OwnedGames)
+            console.log("사용자 프로필 정보"+PlayerInfo)
+            */
 
-            const keys = Object.keys(playerAchievements)
-            for (key of keys) {
-                if (playerAchievements[key].playerstats.achievements) {
-                    for (achi of playerAchievements[key].playerstats.achievements) {
-                        if (achi.achieved) { achiCnt++ }
-                    }
-                }
-            }
-
-            PlayerInfo.achievementsCount = achiCnt
-
-            const mockData = {
+            // display 함수에 넘길 data 객체입니다
+            // 각 value의 경우 응답의 내용을 기대로 넘기는 데이터도 있고
+            // 위의 데이터 처리 함수들에 넘긴 리턴값을 넣는 경우도 있습니다
+            // 변수를 적게 쓰고 싶어 바로 함수의 리턴값(평가값)을 value로 넣었습니다
+            const data = {
                 profile: {
                     name: PlayerInfo.personaname,
-                    avatar: "https://avatars.steamstatic.com/c13361fe7cf0f59a71cd2f84936ec39c8a12074f_full.jpg",
+                    avatar: PlayerInfo.avatarfull,
                     gamesCount: OwnedGames.game_count,
-                    achievementsCount: PlayerInfo.achievementsCount,
-                    totalPlaytime: parseInt((OwnedGames.games.reduce((acc, game)=>acc+game.playtime_forever))/60)
+                    // 206 에러로 인해 사용자 도전과제 정보를 볼 수 없을 경우 해당 데이터를 undefined으로 대체합니다
+                    achievementsCount: isNotPublic ? undefined :
+                    // 만약 206 에러가 아닐 경우 아래의 평가값으로 대체
+                    // 흐름을 요약하자면 전체 도전과제(게임별로 모여있음)을 순회하면서
+                    // 그 안에서 해당 게임의 도전과제 목록을 순회하면서 클리어를 카운트 합니다 
+                        Object.keys(playerAchievements).reduce((acc, key)=>{
+                            if (! playerAchievements[key].playerstats.achievements) { return acc+0 }
+                            cnt = 0
+                            playerAchievements[key].playerstats.achievements.forEach(achi=>{
+                                if (achi.achieved) { cnt ++ }
+                            })
+                            return acc+cnt // 카운트한 값(게임 별)을 다 더해서 하나의 정수값  
+                        }, 0), // 마지막 인자 0의 경우 reduce의 최초 순회시 acc를 어떤 값으로 할것인가 입니다
+                        // reduce의 동작방식이 마지막 reduce의 리턴값이 acc 매게변수에 넘겨지는 식이기 때문에 첫번쨰의 경우 값을 따로 지정
+                    totalPlaytime: parseInt((OwnedGames.games.reduce((acc, game)=>acc+game.playtime_forever, 0))/60)
                 },
                 mostPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.playtime_forever, (data) => parseInt(data.playtime_forever/60)),
                 recentlyPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.rtime_last_played, (data)=> parseInt(data.playtime_forever/60)),
-                oldestAchievements: getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> -e.unlocktime),
-                recentAchievements: getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> e.unlocktime),
+                oldestAchievements: isNotPublic ? undefined : 
+                    getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> -e.unlocktime),
+                recentAchievements: isNotPublic ? undefined : 
+                    getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> e.unlocktime),
                 totalSpent: sum_price(games),
                 expensiveGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.price, (data)=> parseInt(data.price/100)),
                 valueGames: getTop3WithSorting_game(OwnedGames.games, (e)=> {
@@ -731,15 +943,18 @@
                 }),
                 wastedAmount: sum_price_unplayed(OwnedGames.games),
                 unplayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.price, (data)=> parseInt(data.price/100), (game)=>game.playtime_forever < 30),
-                achievementGames: getTop3WithSorting_game_with_achievements(OwnedGames.games, playerAchievements)
+                achievementGames: isNotPublic ? undefined : 
+                    getTop3WithSorting_game_with_achievements(OwnedGames.games, playerAchievements)
             }
 
-            // 데이터 표시
-            displayData(mockData);
+            // 데이터 표시시키는 함수에 data를 통쨰로 넘깁니다 isNotPublic(status 206)의 경우 특정 카드의 데이터가 없기 때문에
+            // 이 또한 같이 넘깁니다
+            displayData(data, isNotPublic);
         }
 
         // 데이터 표시 함수
-        function displayData(data) {
+        function displayData(data, isNotPublic) {
+            //console.log(data)
             // 로딩 숨기기
             loadingElement.style.display = 'none';
             
@@ -748,7 +963,6 @@
             profileName.textContent = data.profile.name;
             gamesCount.textContent = data.profile.gamesCount;
             totalPlaytime.textContent = `${data.profile.totalPlaytime}시간`;
-            achievementsCount.textContent = data.profile.achievementsCount;
             
             // 가장 많이 플레이한 게임
             data.mostPlayedGames.forEach(game => {
@@ -762,55 +976,82 @@
                 recentlyPlayedGames.appendChild(gameElement);
             });
             
-            // 가장 오래된 도전과제
-            data.oldestAchievements.forEach(achievement => {
-                const achievementElement = createAchievementElement(achievement);
-                oldestAchievements.appendChild(achievementElement);
-            });
-
-            // 최근 달성한 도전과제
-            data.recentAchievements.forEach(achievement => {
-                const achievementElement = createAchievementElement(achievement);
-                recentAchievements.appendChild(achievementElement);
-            });
-
             // 총 지출 카드
-            totalSpent.innerText = data.totalSpent+"원"
+            totalSpent.innerText = data.totalSpent.toLocaleString()+"원"
             data.expensiveGames.forEach(game => {
-                const gameElement = createGameElement(game, (data)=> (data+"원"));
+                const gameElement = createGameElement(game, (data)=> (data.toLocaleString()+"원"));
                 expensiveGames.appendChild(gameElement);
             })
 
             // 사놓고 안한게임
-            wastedAmount.innerText = data.wastedAmount+"원"
+            wastedAmount.innerText = data.wastedAmount.toLocaleString()+"원"
             data.unplayedGames.forEach(game => {
-                const gameElement = createGameElement(game, (data)=> (data+"원"));
+                const gameElement = createGameElement(game, (data)=> (data.toLocaleString()+"원"));
                 unplayedGames.appendChild(gameElement);
             })
 
             // 뽕뽑은 게임
             data.valueGames.forEach(game => {
-                const gameElement = createGameElement(game, (data)=> ("1시간 당 가격 "+data+"원"));
+                const gameElement = createGameElement(game, (data)=> ("1시간 당 가격 "+data.toLocaleString()+"원"));
                 valueGames.appendChild(gameElement);
             })
 
-            data.achievementGames.forEach(game => {
-                const gameElement = createGameElement(game, (data)=> ("도전과제 클리어 "+data[0]+"/"+data[1]));
-                achievementGames.appendChild(gameElement);
-            })
+
+            // 206 응답의 경우 아래의 카드에 필요한 데이터가 없기 때문에 랜더링 하지 않습니다
+            if (isNotPublic) {
+                achievementsCount.parentElement.style.display = "none";
+
+                oldestAchievements.parentElement.style.display = "none";
+                recentAchievements.parentElement.style.display = "none";
+                achievementGames.parentElement.style.display = "none";
+            }
+            else {
+                achievementsCount.parentElement.style.display = "flex";
+
+                oldestAchievements.parentElement.style.display = "block";
+                recentAchievements.parentElement.style.display = "block";
+                achievementGames.parentElement.style.display = "block";
+
+                achievementsCount.textContent = data.profile.achievementsCount;
+                // 가장 오래된 도전과제
+                data.oldestAchievements.forEach(achievement => {
+                    const achievementElement = createAchievementElement(achievement);
+                    oldestAchievements.appendChild(achievementElement);
+                });
+
+                // 최근 달성한 도전과제
+                data.recentAchievements.forEach(achievement => {
+                    const achievementElement = createAchievementElement(achievement);
+                    recentAchievements.appendChild(achievementElement);
+                });
+
+                // 도전과제 마스터
+                data.achievementGames.forEach(game => {
+                    const gameElement = createGameElement(game, (data)=> ("도전과제 클리어 "+data[0]+"/"+data[1]));
+                    achievementGames.appendChild(gameElement);
+                });
+            }
+
+            
+
+            
+
+            
 
 
-            console.log(data.achievementGames)
+            //console.log(data.achievementGames)
 
             // 결과 컨테이너 표시
             resultsContainer.style.display = 'block';
         }
-
+        
         // 게임 요소 생성 함수
+        // document.createElement 처럼 작동하는 커스텀 함수를 만들어서 사용했습니다
         function createGameElement(game, how_display) {
             const gameElement = document.createElement('div');
             gameElement.className = 'game-item';
             
+            // how_display 매게변수(콜백함수임)를 통해 게임 카드의 세부 정보 포맷팅을 호출 시 지정하도록 했습니다
             gameElement.innerHTML = `
                 <div class="game-image" style="background-image: url('${game.image}')"></div>
                 <div class="game-details">
@@ -825,6 +1066,7 @@
         }
 
         // 도전과제 요소 생성 함수
+        // 전체적으로 위와 같지만 날짜 형식을 변환해주는 함수를 통해 날짜 포맷팅을 하였습니다
         function createAchievementElement(achievement) {
             const achievementElement = document.createElement('div');
             achievementElement.className = 'achievement';
@@ -844,9 +1086,148 @@
         function formatDate(dateString) {
             const date = new Date(dateString*1000);
             //console.log(date.getFullYear())
-            return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+            return date.toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        // 여기 까지가 메인 JS입니다 아래는 좌측 상단의 API KEY 수동입력 모달을 위한 함수입니다
+
+        // API 키 모달 열기
+        function openApiKeyModal() {
+            const modal = document.getElementById('apiKeyModal');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            
+            // 처음 모달창 등장시 애니메이션을 위해 active 클래스명으로 css 변경
+            modal.classList.add('active');
+            
+            // 포커스를 API 키 입력 필드로 이동
+            setTimeout(() => {  
+                apiKeyInput.focus();
+            }, 100);
+            
+            // 메시지 숨기기
+            hideMessage();
         }
 
+        // API 키 모달 닫기
+        function closeApiKeyModal() {
+            const modal = document.getElementById('apiKeyModal');
+            modal.classList.remove('active');
+            hideMessage();
+        }
+
+        // 비밀번호 표시/숨김 토글
+        //svg의 경우 AI 생성을 통해서 만들었습니다
+        function togglePasswordVisibility() {
+            const input = document.getElementById('apiKeyInput');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.innerHTML = `
+                    <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                `;
+            } else {
+                input.type = 'password';
+                eyeIcon.innerHTML = `
+                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                `;
+            }
+        }
+
+        // 메시지 표시
+        function showMessage(text, type = 'success') {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.textContent = text;
+            messageContainer.className = `message ${type} show`;
+        }
+
+        // 메시지 숨기기
+        function hideMessage() {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.classList.remove('show');
+        }
+
+        // API 키 저장
+        function saveApiKey() {
+            // api 키 입력 요소의 값을 공백 없이 받습니다
+            const apiKey_byInput = document.getElementById('apiKeyInput').value.trim();
+            const saveBtn = document.getElementById('saveBtn');
+            
+            // 내용이 비었다면 오류 메세지 표시와 함께 함수종료
+            if (!apiKey_byInput) {
+                showMessage('API 키를 입력해주세요.', 'error');
+                return;
+            }
+
+            // 간단한 API 키 형식 검증
+            if (apiKey_byInput.length < 10) {
+                showMessage('유효하지 않은 API 키 형식입니다.', 'error');
+                return;
+            }
+
+            // 저장 버튼 비활성화
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+                    <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                </svg>
+                저장 중...
+            `;
+
+            // express 프록시 서버에 엔드포인트를 하나 만들어서 steam web api에 요청 하나를 쏴서
+            // api key가 유요한지 확인하고 유효 할 경우에만 전역 변수 apiKey에 넣습니다
+            setTimeout(async ()=> {
+                try {
+                    const res = await fetch(`http://localhost:3000/api/status?apiKey=${apiKey_byInput}`)
+
+                    if (res.ok) {
+                        apiKey = apiKey_byInput
+                        showMessage('API 키가 성공적으로 저장되었습니다!', 'success');
+                    }
+                    else if (res.status == 429) {
+                        showMessage('해당 API KEY가 이미 너무 많은 요청을 수행하였습니다. 잠시후 다시 시도하여주세요.', 'error')
+                    }
+                    else {
+                        showMessage('유효하지 않은 API 키입니다. API 키를 한번 더 확인하여 주세요.', 'error')
+                    }
+                } catch (error) {
+                    showMessage('저장 중 오류가 발생했습니다.', 'error');
+                } finally {
+                    // 저장 버튼 복원
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = `
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                        </svg>
+                        저장
+                    `;
+                }
+            }, 1000);
+            
+        }
+
+        // 모달의 저장 버튼 이벤트 리스너에 함수 연결, 함수로 연결하기 위해 preventDefault 사용 
+        document.getElementById('apiKeyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveApiKey();
+        });
+
+        // 모달 외부 클릭 시 닫기
+        document.getElementById('apiKeyModal').addEventListener('click', function(e) {
+            if (e.target === this) { 
+                closeApiKeyModal();
+            }
+        });
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('apiKeyModal');
+                if (modal.classList.contains('active')) {
+                    closeApiKeyModal();
+                }
+            }
+        });
+        // server.js에 open API 호출 코드가 있습니다 확인하여 주세요
     </script>
 </body>
 </html>
