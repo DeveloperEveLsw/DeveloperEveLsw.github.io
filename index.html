@@ -710,7 +710,7 @@
                 const gameData = {
                     name: item.name,
                     data: data(item),
-                    image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
+                    image: `https://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
                 }
                 return gameData
             })
@@ -762,7 +762,7 @@
                 const gameData = {
                     name: item.name,
                     data: [clearRate[item.appid].achievedCount, clearRate[item.appid].total],
-                    image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
+                    image: `https://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
                 }
                 return gameData
             })
@@ -1181,7 +1181,7 @@
             // api key가 유요한지 확인하고 유효 할 경우에만 전역 변수 apiKey에 넣습니다
             setTimeout(async ()=> {
                 try {
-                    const res = await fetch(`http://localhost:3000/api/status?apiKey=${apiKey_byInput}`)
+                    const res = await fetch(`https://localhost:3000/api/status?apiKey=${apiKey_byInput}`)
 
                     if (res.ok) {
                         apiKey = apiKey_byInput
