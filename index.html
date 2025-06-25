@@ -837,7 +837,7 @@
             // 매게변수로 받은 steamId와 전역변수 apikey를 쿼리문에 넣어서 요청합니다
             // 해당과제에서 사용한 open api(steam web api)와 벡엔드에서 받는 통신 메서드는
             // 전부 GET 메서드입니다
-            const res = await fetch(`https://13.211.164.177:3000/api?steamId=${steamId}&apiKey=${apiKey}`);
+            const res = await fetch(`https://13.211.164.177.nip.io/api?steamId=${steamId}&apiKey=${apiKey}`);
 
             // status가 206(일부만 반환됨 일부는 실패) 일 경우 그 결과를 변수에 저장하며
             // message div 박스를 표시합니다 message div 박스의 경우 현재까진 이 경우에만 사용하기 때문에
