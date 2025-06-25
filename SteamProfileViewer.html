@@ -615,10 +615,7 @@
 
     <script>
         
-        // api 변경 기능을 만들었기 때문에 api는 전역으로 관리하며
-        // 재할당을 위해 let으로 선언
-        // 실배포를 한다면 브라우저의 로컬스토리지, 혹은 쿠키에 할당해야 할것 같습니다
-        let apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
+        let apiKey = null
 
         // DOM 요소
         // 문서 객체들을 전역에 할당하여 함수내에서 사용합니다
@@ -832,10 +829,15 @@
 
         // fetch(비동기 처리, Promise가 반환될수 있어야함 그렇기에 async 키워드를 사용합니다 )
         async function fetchData(steamId) {
+
+            if (apiKey === null) {
+                apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
+            }
+
             // 매게변수로 받은 steamId와 전역변수 apikey를 쿼리문에 넣어서 요청합니다
             // 해당과제에서 사용한 open api(steam web api)와 벡엔드에서 받는 통신 메서드는
             // 전부 GET 메서드입니다
-            const res = await fetch(`http://localhost:3000/api?steamId=${steamId}&apiKey=${apiKey}`);
+            const res = await fetch(`http://13.211.164.177:3000/api?steamId=${steamId}&apiKey=${apiKey}`);
 
             // status가 206(일부만 반환됨 일부는 실패) 일 경우 그 결과를 변수에 저장하며
             // message div 박스를 표시합니다 message div 박스의 경우 현재까진 이 경우에만 사용하기 때문에
@@ -889,10 +891,12 @@
                 429 에러 문제를 알게된후엔 메모장에 옮겨서 확인해가며 작업하였습니다
             console.log("도전과제"+achievements)
             console.log("도전과제 사용자 정보"+playerAchievements)
-            console.log("게임 스토어 정보"+games)
-            console.log("게임 사용자 정보"+OwnedGames)
-            console.log("사용자 프로필 정보"+PlayerInfo)
             */
+            console.log(games)
+            
+            console.log(OwnedGames)
+            //console.log("사용자 프로필 정보"+PlayerInfo)
+            
 
             // display 함수에 넘길 data 객체입니다
             // 각 value의 경우 응답의 내용을 기대로 넘기는 데이터도 있고

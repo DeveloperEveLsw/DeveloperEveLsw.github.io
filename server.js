@@ -84,7 +84,7 @@ app.get("/api", async (req, res) => {
         const games = (await Promise.all(
             // 게임 목록을 가지고 map 메서드를 각각의 appid를 기반으로 게임 정보를 요청을 보냄
             appids.map(async appid => {
-                const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appid}&filters=price_overview,release_date  `
+                const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appid}&cc=kr&l=korean&filters=price_overview,release_date`
                     ).then( response => { // 요청 성공 확인후 json(json은 body)을 리턴합니다 
                         if (response.status == 429) { console.log(response.headers); throw new Error("Too Many Requests") }
                         return response.json()
