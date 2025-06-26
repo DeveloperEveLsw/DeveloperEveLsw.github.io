@@ -50,7 +50,7 @@ app.get("/api", async (req, res) => {
                 message: "Please provide both 'steamId' in the query string.",
                 example: "/api?steamId=yourSteamId&apiKey=yourApiKey"
         });
-         }
+        }
          
         // 사용자 정보 api 요청 await 키워드로 비동기 요청을 보내며
         // then 메서드를 통해 Promise 상태가 끝나면(요청을 받아오면)
@@ -108,24 +108,7 @@ app.get("/api", async (req, res) => {
 
         
         //console.log(games)
-        // 각 게임들의 도전과제 목록을 가져오는 api
-        // 위와 거의 똑같지만 다른점은 응답값에 게임을 구분할 정보가 담겨져 있지 않음
-        // 그렇기에 map의 리턴값을 새로운 구조의 Object로 만들어서 리턴
-        // Object의 키값을 동적으로(각 게임의 키에 맞게) 하기 위해 appid를 [] 로 감싸
-        // appid라는 key가 아닌 appid 변수 안 값을 키로 사용 그 외 위와 같음
-        const achievements = (await Promise.all(
-            appids.map(async appid=> {
-                const res = await fetch(`https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${apiKey}&appid=${appid}&l=koreana`                   
-                ).then( res => {
-                    if (res.status == 429) { throw new Error("Too Many Requests") }
-                    return res.json()
-                    })
-                return res.game && res.game.gameVersion ? {[appid]: res} : null
-            })
-        )).filter(item => item !== null
-        ).reduce((acc, obj) => {
-            return { ...acc, ...obj };
-        }, {});
+        
 
         // 메인 html에서 가격기준 정렬을 하기위해 OwnedGames의 배열에 price 값을 추가해서 새로운 변수를 만듦니다
         // 게임이 공짜이거나(공짜일 경우 store 정보의 price_overview가 없는 경우가 있음, 옛날게임이 주로 그럼)
@@ -162,6 +145,25 @@ app.get("/api", async (req, res) => {
             )).filter(item => item !== null
             ).reduce((acc, obj) => {
                 return { ...acc, ...obj };
+        }, {});
+
+        // 각 게임들의 도전과제 목록을 가져오는 api
+        // 위와 거의 똑같지만 다른점은 응답값에 게임을 구분할 정보가 담겨져 있지 않음
+        // 그렇기에 map의 리턴값을 새로운 구조의 Object로 만들어서 리턴
+        // Object의 키값을 동적으로(각 게임의 키에 맞게) 하기 위해 appid를 [] 로 감싸
+        // appid라는 key가 아닌 appid 변수 안 값을 키로 사용 그 외 위와 같음
+        const achievements = (await Promise.all(
+            appids.map(async appid=> {
+                const res = await fetch(`https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${apiKey}&appid=${appid}&l=koreana`                   
+                ).then( res => {
+                    if (res.status == 429) { throw new Error("Too Many Requests") }
+                    return res.json()
+                    })
+                return res.game && res.game.gameVersion ? {[appid]: res} : null
+            })
+        )).filter(item => item !== null
+        ).reduce((acc, obj) => {
+            return { ...acc, ...obj };
         }, {});
 
         // 이렇게 5개의 엔드포인트에서 수집한 데이터를 하나의 객체로 만들어서
