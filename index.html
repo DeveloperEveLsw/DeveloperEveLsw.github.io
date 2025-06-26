@@ -272,13 +272,8 @@
         }
 
         .achievement-icon {
-<<<<<<< HEAD
-            width: 40px;
-            height: 40px;
-=======
             width: 50px;
             height: 50px;
->>>>>>> Feature
             background-color: var(--steam-bg-light);
             margin-right: 15px;
             border-radius: 3px;
@@ -620,14 +615,7 @@
 
     <script>
         
-<<<<<<< HEAD
         let apiKey = null
-=======
-        // api 변경 기능을 만들었기 때문에 api는 전역으로 관리하며
-        // 재할당을 위해 let으로 선언
-        // 실배포를 한다면 브라우저의 로컬스토리지, 혹은 쿠키에 할당해야 할것 같습니다
-        let apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
->>>>>>> Feature
 
         // DOM 요소
         // 문서 객체들을 전역에 할당하여 함수내에서 사용합니다
@@ -722,11 +710,7 @@
                 const gameData = {
                     name: item.name,
                     data: data(item),
-<<<<<<< HEAD
                     image: `https://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
-=======
-                    image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
->>>>>>> Feature
                 }
                 return gameData
             })
@@ -778,11 +762,7 @@
                 const gameData = {
                     name: item.name,
                     data: [clearRate[item.appid].achievedCount, clearRate[item.appid].total],
-<<<<<<< HEAD
                     image: `https://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
-=======
-                    image: `http://media.steampowered.com/steamcommunity/public/images/apps/${item.appid}/${item.img_icon_url}.jpg`
->>>>>>> Feature
                 }
                 return gameData
             })
@@ -831,11 +811,7 @@
             ).filter( key=> games[key].data.price_overview
             ).map((key)=> games[key]
             ).forEach((item)=>{
-<<<<<<< HEAD
-                total_price += item.data.price_overview.final
-=======
                 total_price += item.data.price_overview.initial
->>>>>>> Feature
             })
             console.log(total_price)
             return parseInt(total_price/100)
@@ -853,53 +829,6 @@
 
         // fetch(비동기 처리, Promise가 반환될수 있어야함 그렇기에 async 키워드를 사용합니다 )
         async function fetchData(steamId) {
-<<<<<<< HEAD
-
-            if (apiKey === null) {
-                apiKey = "0C5CC5EFA02735E935191F01B39BFEB3"
-            }
-
-            // 매게변수로 받은 steamId와 전역변수 apikey를 쿼리문에 넣어서 요청합니다
-            // 해당과제에서 사용한 open api(steam web api)와 벡엔드에서 받는 통신 메서드는
-            // 전부 GET 메서드입니다
-            const res = await fetch(`https://13.211.164.177.nip.io/api?steamId=${steamId}&apiKey=${apiKey}`);
-
-            // status가 206(일부만 반환됨 일부는 실패) 일 경우 그 결과를 변수에 저장하며
-            // message div 박스를 표시합니다 message div 박스의 경우 현재까진 이 경우에만 사용하기 때문에
-            // 따로 내용을 수정해서 표시하거나 하진 않습니다
-            // 206의 경우 실패가 아니라 일부 내용만 표시하기 때문에 따로 return문을 통해 함수를 종료하진 않습니다
-            // ***************** 206 에러의 경우 사용자가 프로필일 일부 공개로 설정하여서
-            // ***************** 게임별 도전과제 정보를 볼 수 없을경우 입니다
-            if (res.status == 206) {
-                isNotPublic = res.status == 206
-                message.style.display = 'block'
-            } else { isNotPublic = res.status == 206; message.style.display = 'none';}
-            
-            //console.log("퍼블릭 : "+isNotPublic)
-            
-            // 요청 실패일 경우엔 에러 메세지 div 박스의 내용을 수정 후 표시합니다
-            // 요청 실패이기 때문에 함수를 종료 합니다
-            if (res.status == 400) { 
-                errorMessage.innerText = "사용자를 찾을 수 없습니다. Steam 사용자명이 아닌 Steam ID(고유 17자리)를 입력하여 주세요."
-                errorMessage.style.display = 'block';
-                loadingElement.style.display = 'none';
-                return
-            }
-            // steam web api의 경우 너무 많은 요청시 임시 차단됩니다
-            // 검색 결과 기준이 정확한 기준이 없기 때문에(시간대별 다르다는 이야기가 있습니다)
-            // 따로 요청 텀을 조절하긴 힘들것같아 429에러시 실패 메세지가 나오도록 했습니다
-            if (res.status == 429) {
-                errorMessage.innerText = "API 요청이 너무 많습니다. 잠시 후 시도하여 주세요"
-                errorMessage.style.display = 'block';
-                loadingElement.style.display = 'none';
-                return}
-
-            if (!res.ok) {
-                errorMessage.innerText = "서버 오류입니다"
-                errorMessage.style.display = 'block';
-                loadingElement.style.display = 'none';
-                return
-=======
             // 매게변수로 받은 steamId와 전역변수 apikey를 쿼리문에 넣어서 요청합니다
             // 해당과제에서 사용한 open api(steam web api)와 벡엔드에서 받는 통신 메서드는
             // 전부 GET 메서드입니다
@@ -910,7 +839,7 @@
             // ui 처리를 하였습니다
             let res;
             try{
-                res =  await fetch(`http://localhost:3000/api?steamId=${steamId}&apiKey=${apiKey}`
+                res =  await fetch(`https://13.211.164.177.nip.io/api?steamId=${steamId}`+ (apiKey ? `&apiKey=${apiKey}` : ``)
                 ).then((response)=>{
                     if (response.status === 403) {         
                         errorMessage.innerText = "프로필 비공개 계정입니다."
@@ -945,7 +874,6 @@
                 errorMessage.innerText = "서버 상태를 확인하세요."
                 errorMessage.style.display = 'block';
                 loadingElement.style.display = 'none';
->>>>>>> Feature
             }
 
             // 위의 검사를 통해 응답이 잘 왔으면 json을 반환 받습니다
@@ -958,19 +886,6 @@
             const OwnedGames = body.OwnedGames;
             const achievements = body.achievements
 
-<<<<<<< HEAD
-            /* 과제를 하며 계속해서 응답의 내용들을 봐가면서 데이터를 가공해야 했기에
-                콘솔문으로 출력문을 확인해가며 작업했습니다
-                429 에러 문제를 알게된후엔 메모장에 옮겨서 확인해가며 작업하였습니다
-            console.log("도전과제"+achievements)
-            console.log("도전과제 사용자 정보"+playerAchievements)
-            */
-            console.log(games)
-            
-            console.log(OwnedGames)
-            //console.log("사용자 프로필 정보"+PlayerInfo)
-            
-=======
             // 사용자가 프로필을 일부분 비공개 하거나
             // 자신의 api키로 자신의 계정을 검색할때는 더 많은 정보가 나오기 때문에
             // 가능한 성공한 모든 정보를 띄우고자 불리안 값으로 정보의 접근 상태를 변수로 관리하였습니다
@@ -987,7 +902,6 @@
             console.log(OwnedGames)
             console.log(PlayerInfo)
             */
->>>>>>> Feature
 
             // display 함수에 넘길 data 객체입니다
             // 각 value의 경우 응답의 내용을 기대로 넘기는 데이터도 있고
@@ -998,13 +912,8 @@
                     name: PlayerInfo.personaname,
                     avatar: PlayerInfo.avatarfull,
                     gamesCount: OwnedGames.game_count,
-<<<<<<< HEAD
-                    // 206 에러로 인해 사용자 도전과제 정보를 볼 수 없을 경우 해당 데이터를 undefined으로 대체합니다
-                    achievementsCount: isNotPublic ? undefined :
-=======
                     // 206 에러로 인해 사용자 도전과제 정보를 볼 수 없을 경우 해당 데이터를 null로 대체합니다
                     achievementsCount: achi_isNotPublic ? null :
->>>>>>> Feature
                     // 만약 206 에러가 아닐 경우 아래의 평가값으로 대체
                     // 흐름을 요약하자면 전체 도전과제(게임별로 모여있음)을 순회하면서
                     // 그 안에서 해당 게임의 도전과제 목록을 순회하면서 클리어를 카운트 합니다 
@@ -1017,18 +926,6 @@
                             return acc+cnt // 카운트한 값(게임 별)을 다 더해서 하나의 정수값  
                         }, 0), // 마지막 인자 0의 경우 reduce의 최초 순회시 acc를 어떤 값으로 할것인가 입니다
                         // reduce의 동작방식이 마지막 reduce의 리턴값이 acc 매게변수에 넘겨지는 식이기 때문에 첫번쨰의 경우 값을 따로 지정
-<<<<<<< HEAD
-                    totalPlaytime: parseInt((OwnedGames.games.reduce((acc, game)=>acc+game.playtime_forever, 0))/60)
-                },
-                mostPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.playtime_forever, (data) => parseInt(data.playtime_forever/60)),
-                recentlyPlayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.rtime_last_played, (data)=> parseInt(data.playtime_forever/60)),
-                oldestAchievements: isNotPublic ? undefined : 
-                    getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> -e.unlocktime),
-                recentAchievements: isNotPublic ? undefined : 
-                    getTop3WithSorting_achievements(playerAchievements, achievements, (e)=> e.unlocktime),
-                totalSpent: sum_price(games),
-                expensiveGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.price, (data)=> parseInt(data.price/100)),
-=======
 
                     totalPlaytime: parseInt((OwnedGames.games.reduce((acc, game)=>acc+game.playtime_forever, 0))/60)
                 },
@@ -1047,7 +944,6 @@
 
                 expensiveGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.price, (data)=> parseInt(data.price/100)),
 
->>>>>>> Feature
                 valueGames: getTop3WithSorting_game(OwnedGames.games, (e)=> {
                     if (e.price == 0) {
                         return -99999999999
@@ -1062,21 +958,6 @@
                     console.log(playTime)
                     return parseInt(price/playTime)
                 }),
-<<<<<<< HEAD
-                wastedAmount: sum_price_unplayed(OwnedGames.games),
-                unplayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.price, (data)=> parseInt(data.price/100), (game)=>game.playtime_forever < 30),
-                achievementGames: isNotPublic ? undefined : 
-                    getTop3WithSorting_game_with_achievements(OwnedGames.games, playerAchievements)
-            }
-
-            // 데이터 표시시키는 함수에 data를 통쨰로 넘깁니다 isNotPublic(status 206)의 경우 특정 카드의 데이터가 없기 때문에
-            // 이 또한 같이 넘깁니다
-            displayData(data, isNotPublic);
-        }
-
-        // 데이터 표시 함수
-        function displayData(data, isNotPublic) {
-=======
 
                 wastedAmount: sum_price_unplayed(OwnedGames.games),
                 
@@ -1092,7 +973,6 @@
 
         // 데이터 표시 함수
         function displayData(data) {
->>>>>>> Feature
             //console.log(data)
             // 로딩 숨기기
             loadingElement.style.display = 'none';
@@ -1109,15 +989,6 @@
                 mostPlayedGames.appendChild(gameElement);
             });
             
-<<<<<<< HEAD
-            // 최근 플레이한 게임
-            data.recentlyPlayedGames.forEach(game => {
-                const gameElement = createGameElement(game, (data)=> (data+"시간 플레이"));
-                recentlyPlayedGames.appendChild(gameElement);
-            });
-            
-=======
->>>>>>> Feature
             // 총 지출 카드
             totalSpent.innerText = data.totalSpent.toLocaleString()+"원"
             data.expensiveGames.forEach(game => {
@@ -1138,26 +1009,6 @@
                 valueGames.appendChild(gameElement);
             })
 
-<<<<<<< HEAD
-
-            // 206 응답의 경우 아래의 카드에 필요한 데이터가 없기 때문에 랜더링 하지 않습니다
-            if (isNotPublic) {
-                achievementsCount.parentElement.style.display = "none";
-
-                oldestAchievements.parentElement.style.display = "none";
-                recentAchievements.parentElement.style.display = "none";
-                achievementGames.parentElement.style.display = "none";
-            }
-            else {
-                achievementsCount.parentElement.style.display = "flex";
-
-                oldestAchievements.parentElement.style.display = "block";
-                recentAchievements.parentElement.style.display = "block";
-                achievementGames.parentElement.style.display = "block";
-
-                achievementsCount.textContent = data.profile.achievementsCount;
-                // 가장 오래된 도전과제
-=======
             // 정보 공개 정도에 따라 null 값으로 대체 된걸 falsy 평가값으로 조건문에 실었습니다 
             if (data.profile.achievementsCount) {
                 achievementsCount.parentElement.style.display = "flex";
@@ -1174,54 +1025,28 @@
 
             if (data.oldestAchievements) {
                 oldestAchievements.parentElement.style.display = "block";
->>>>>>> Feature
                 data.oldestAchievements.forEach(achievement => {
                     const achievementElement = createAchievementElement(achievement);
                     oldestAchievements.appendChild(achievementElement);
                 });
-<<<<<<< HEAD
-
-                // 최근 달성한 도전과제
-=======
             } else { oldestAchievements.parentElement.style.display = "none"; }
 
             if (data.recentAchievements) {
                 recentAchievements.parentElement.style.display = "block";
->>>>>>> Feature
                 data.recentAchievements.forEach(achievement => {
                     const achievementElement = createAchievementElement(achievement);
                     recentAchievements.appendChild(achievementElement);
                 });
-<<<<<<< HEAD
-
-                // 도전과제 마스터
-=======
             } else { recentAchievements.parentElement.style.display = "none"; }
 
             if (data.achievementGames) {
                 achievementGames.parentElement.style.display = "block";
->>>>>>> Feature
                 data.achievementGames.forEach(game => {
                     const gameElement = createGameElement(game, (data)=> ("도전과제 클리어 "+data[0]+"/"+data[1]));
                     achievementGames.appendChild(gameElement);
                 });
-<<<<<<< HEAD
-            }
-
-            
-
-            
-
-            
-
-
-            //console.log(data.achievementGames)
-
-            // 결과 컨테이너 표시
-=======
             } else { achievementGames.parentElement.style.display = "none"; }
             
->>>>>>> Feature
             resultsContainer.style.display = 'block';
         }
         
@@ -1357,11 +1182,7 @@
             // api key가 유요한지 확인하고 유효 할 경우에만 전역 변수 apiKey에 넣습니다
             setTimeout(async ()=> {
                 try {
-<<<<<<< HEAD
                     const res = await fetch(`https://localhost:3000/api/status?apiKey=${apiKey_byInput}`)
-=======
-                    const res = await fetch(`http://localhost:3000/api/status?apiKey=${apiKey_byInput}`)
->>>>>>> Feature
 
                     if (res.ok) {
                         apiKey = apiKey_byInput

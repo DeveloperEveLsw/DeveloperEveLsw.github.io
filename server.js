@@ -8,6 +8,8 @@ const cors = require("cors");
 const app = express();
 app.use(cors()); 
 
+const DEFAULT_API_KEY = process.env.DEFAULT_API_KEY;
+
 // api key 유효한지를 확인하는 엔드포인트입니다, apikey 변경시에만 사용합니다
 app.get("/api/status", async(req, res) => {
     try {
@@ -33,14 +35,18 @@ app.get("/api", async (req, res) => {
     try {
         // express api의 url 쿼리에서 apiKey와 steamId(사용자 검색 목적)
         // 을 꺼내서 변수에 저장합니다. 쿼리가 오지 않았으면 undefined 입니다
-        const apiKey = req.query.apiKey
+        let apiKey = req.query.apiKey
         const steamId = req.query.steamId
 
+        if (!apiKey) {
+            apiKey = DEFAULT_API_KEY;
+        }
+
         // if 문으로 쿼리가 왔는지 체크, 안왔다면 실패 response을 반환합니다
-        if (!(steamId || apiKey)) { 
+        if (!(steamId)) { 
             return res.status(400).json({
                 error: "Missing required query parameters",
-                message: "Please provide both 'steamId' or 'apiKey' in the query string.",
+                message: "Please provide both 'steamId' in the query string.",
                 example: "/api?steamId=yourSteamId&apiKey=yourApiKey"
         });
          }
@@ -70,10 +76,6 @@ app.get("/api", async (req, res) => {
             if (Object.keys(body.response).length === 0) { throw new Error("Profile is not public") }
             return body
         });
-<<<<<<< HEAD
-        //console.log(OwnedGames)
-=======
->>>>>>> Feature
         
         // 위의 응답 내용중 games(Array 타입)의 map 메서드를 통해서 appid만 빼내서 다른 배열로 저장
         let appids = OwnedGames.response.games.map(game => game.appid);
@@ -90,11 +92,7 @@ app.get("/api", async (req, res) => {
         const games = (await Promise.all(
             // 게임 목록을 가지고 map 메서드를 각각의 appid를 기반으로 게임 정보를 요청을 보냄
             appids.map(async appid => {
-<<<<<<< HEAD
                 const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appid}&cc=kr&l=korean&filters=price_overview,release_date`
-=======
-                const res = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appid}&filters=price_overview,release_date  `
->>>>>>> Feature
                     ).then( response => { // 요청 성공 확인후 json(json은 body)을 리턴합니다 
                         if (response.status == 429) { console.log(response.headers); throw new Error("Too Many Requests") }
                         return response.json()
@@ -117,15 +115,9 @@ app.get("/api", async (req, res) => {
         const achievements = (await Promise.all(
             appids.map(async appid=> {
                 const res = await fetch(`https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${apiKey}&appid=${appid}&l=koreana`                   
-<<<<<<< HEAD
-                ).then( body => {
-                    if (body.status == 429) { throw new Error("Too Many Requests") }
-                        return body.json()
-=======
                 ).then( res => {
                     if (res.status == 429) { throw new Error("Too Many Requests") }
                     return res.json()
->>>>>>> Feature
                     })
                 return res.game && res.game.gameVersion ? {[appid]: res} : null
             })
@@ -140,13 +132,8 @@ app.get("/api", async (req, res) => {
         const new_OwnedGames = {
             ...OwnedGames.response,
             games: OwnedGames.response.games.map(item=>{
-<<<<<<< HEAD
-                console.log(games[item.appid])       
-                return {...item, price: (games[item.appid] && games[item.appid].data.price_overview) ? games[item.appid].data.price_overview.final : 0 }
-=======
                 //console.log(games[item.appid])       
                 return {...item, price: (games[item.appid] && games[item.appid].data.price_overview) ? games[item.appid].data.price_overview.initial : 0 }
->>>>>>> Feature
             })
         }
 
@@ -161,15 +148,6 @@ app.get("/api", async (req, res) => {
             const playerAchievements = (await Promise.all(
                 appids.map(async appid=>{
                     const res = await fetch(`https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${apiKey}&steamid=${steamId}&appid=${appid}`                    
-<<<<<<< HEAD
-                        ).then(body => { 
-                            if (body.status == 429) { throw new Error("Too Many Requests") }
-                            
-                            // 계정의 프로필 정보가 공개가 아닐경우 접근불가하여 403 실패 발생
-                            // 이 경우 에러 throw 후 도전과제 클리어 정보만 제외하여 응답을 보냅니다
-                            if (body.status == 403) { throw new Error("Profile is not public") }
-                            return body.json()
-=======
                         ).then(res => { 
                             if (res.status == 429) { throw new Error("Too Many Requests") }
                             
@@ -177,7 +155,6 @@ app.get("/api", async (req, res) => {
                             // 이 경우 에러 throw 후 도전과제 클리어 정보만 제외하여 응답을 보냅니다
                             if (res.status == 403) { throw new Error("Profile is not public") }
                             return res.json()
->>>>>>> Feature
                         })
                     return res.playerstats.success ? {[appid]: res} : null
                 })      // 이 경우도 success 실패시 null로 변경후 필터로 제거
@@ -223,10 +200,7 @@ app.get("/api", async (req, res) => {
         // 각각의 Error을 message 멤버를 통해 구분하여 그에 맞는 실패 응답을 보냅니다
         if (error.message == "Too Many Requests") { console.log("api key 요청 과다 임시 차단"); res.status(429).json({ error: error.message }); }
         else if (error.message == "No information found") { console.log("No information found"); res.status(400).json( {error: error.message}); }
-<<<<<<< HEAD
-=======
         else if (error.message == "Profile is not public") { console.log("Profile is not public"); res.status(403).json( {error: error.message}); }
->>>>>>> Feature
         // 그외의 예외는 전부 500 서버 오류라고 판단하고 500으로 응답을 보냅니다
         else {res.status(500).json({ error: error.message });}
     }
