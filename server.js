@@ -1,6 +1,7 @@
 // node express 백엔드 환경입니다
 // node 환경에서 express(백엔드 라이브러리)를 사용하기 위해 require로 임포트 합니다
 const express = require("express");
+require('dotenv').config();
 // express 라이브러리에서 지원하는 cors 미들웨어를 반환하는 함수입니다
 // 이걸 express의 use에 넘기면 해당 미들웨어가 적용됩니다
 const cors = require("cors");
