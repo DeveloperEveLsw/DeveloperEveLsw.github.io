@@ -3,11 +3,6 @@
 const express = require("express");
 require('dotenv').config();
 
-
-const AWS = require('aws-sdk');
-const lambda = new AWS.Lambda({ region: 'ap-northeast-2' });
-// express 라이브러리에서 지원하는 cors 미들웨어를 반환하는 함수입니다
-// 이걸 express의 use에 넘기면 해당 미들웨어가 적용됩니다
 const cors = require("cors");
 
 const app = express();
@@ -184,24 +179,7 @@ app.get("/api", async (req, res) => {
         //console.log("전송 성공");
         // 응답을 보냅니다
 
-
         // lambdaCall.js
-
-
-        (async () => {
-        try {
-            const response = await lambda.invoke({
-            FunctionName: 'steamData', // Lambda 함수 이름 또는 ARN
-            InvocationType: 'RequestResponse',      // 동기 호출
-            Payload: JSON.stringify(res_body)        // 문자열 형태로 전달!
-            }).promise();
-
-            const result = JSON.parse(response.Payload);
-            console.log('Lambda 결과:', result);
-        } catch (err) {
-            console.error('Lambda 호출 실패:', err);
-        }
-        })();
             
         res.status(200).json(res_body);
 
