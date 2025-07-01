@@ -839,7 +839,7 @@
             // ui 처리를 하였습니다
             let res;
             try{
-                res =  await fetch(`https://13.211.164.177.nip.io/api?steamId=${steamId}`+ (apiKey ? `&apiKey=${apiKey}` : ``)
+                res =  await fetch(`https://3.27.71.87.nip.io/api?steamId=${steamId}`+ (apiKey ? `&apiKey=${apiKey}` : ``)
                 ).then((response)=>{
                     if (response.status === 403) {         
                         errorMessage.innerText = "프로필 비공개 계정입니다."
@@ -1182,7 +1182,7 @@
             // api key가 유요한지 확인하고 유효 할 경우에만 전역 변수 apiKey에 넣습니다
             setTimeout(async ()=> {
                 try {
-                    const res = await fetch(`https://localhost:3000/api/status?apiKey=${apiKey_byInput}`)
+                    const res = await fetch(`https://3.27.71.87.nip.io/api/status?apiKey=${apiKey_byInput}`)
 
                     if (res.ok) {
                         apiKey = apiKey_byInput
