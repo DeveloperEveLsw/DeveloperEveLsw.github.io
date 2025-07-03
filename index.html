@@ -134,6 +134,13 @@
             background-color: var(--steam-blue-hover);
         }
 
+        .search-button:disabled {
+            background-color: #3a4b5c;
+            color: #b0b8c1;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
         /* Results Container */
         .results-container {
             width: 100%;
@@ -151,8 +158,8 @@
         }
 
         .profile-avatar {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 4px;
             margin-right: 20px;
             background-color: var(--steam-bg-light);
@@ -165,9 +172,44 @@
 
         .profile-name {
             color: var(--steam-text-bright);
-            font-size: 24px;
-            margin-bottom: 5px;
+            font-size: 30px;
         }
+
+        .profile-name-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .last-refresh-time {
+            font-size: 12px;
+            color: #8fa6bc;
+            margin-left: 4px;
+        }
+
+        .refresh-btn {
+            margin-left: 15px;
+            background-color: var(--steam-blue);
+            color: var(--steam-text-bright);
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-radius: 4px;
+        }
+
+        .refresh-btn:hover {
+            background-color: var(--steam-blue-hover);
+        }
+
+        .refresh-btn:disabled {
+            background-color: #3a4b5c;
+            color: #b0b8c1;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
 
         .profile-stats {
             display: flex;
@@ -377,6 +419,8 @@
             margin-top: auto;
         }
 
+        
+
         /* Responsive */
         @media (max-width: 768px) {
             .search-container {
@@ -402,6 +446,7 @@
                 flex-wrap: wrap;
             }
         }
+        
     </style>
     <link rel="stylesheet" href="apiKeyModal.css">
 </head>
@@ -454,7 +499,11 @@
             <div class="profile-header" id="profile-header">
                 <div class="profile-avatar" id="profile-avatar"></div>
                 <div class="profile-info">
-                    <h2 class="profile-name" id="profile-name">사용자명</h2>
+                    <div class="profile-name-container">
+                        <h2 class="profile-name" id="profile-name">사용자명</h2>
+                        <button class="refresh-btn" id="refresh-btn">갱신</button>
+                        <span class="last-refresh-time" id="last-refresh-time"></span>
+                    </div>
                     <div class="profile-stats">
                         <div class="profile-stat">
                             <span>게임 수</span>
@@ -617,8 +666,8 @@
         
         let apiKey = null
 
-        //const apiUrl = "https://3.27.71.87.nip.io"
-        const apiUrl = "http://localhost:3000"
+        const apiUrl = "https://3.27.71.87.nip.io"
+        //const apiUrl = "http://localhost:3000"
 
 
         // DOM 요소
@@ -649,6 +698,10 @@
         const valueGames = document.getElementById("value-games");
         const achievementGames = document.getElementById("achievement-games");
 
+        const refreshBtn = document.getElementById('refresh-btn');
+        const lastRefreshTime = document.getElementById('last-refresh-time');
+
+        let currentSteamId = null;
 
         // 폼 제출 이벤트 리스너
         // 검색 Form 영역의 검색버튼(submit, 제출) 시 함수입니다
@@ -668,6 +721,10 @@
                 // 실제 요청할 함수
                 fetchData(steamId)
             }
+        });
+
+        refreshBtn.addEventListener('click', function() {
+            
         });
 
         // UI 초기화 함수
@@ -886,10 +943,13 @@
 
             const need_cache = !!body.need_cache
 
+            currentSteamId = steamId;
+
             if (!need_cache) {
-                console.log(body)
-                displayData(body)
-                return
+                if (body.profile) {
+                    displayData(body)
+                    return
+                }
             }
 
             // 이제 body의 내용들을 각각의 변수에 풉니다
@@ -977,8 +1037,9 @@
                 unplayedGames: getTop3WithSorting_game(OwnedGames.games, (e)=> e.price, (data)=> parseInt(data.price/100), (game)=>game.playtime_forever < 30),
                 
                 achievementGames: achi_isNotPublic ? null : 
-                    getTop3WithSorting_game_with_achievements(OwnedGames.games, playerAchievements)
-            }
+                    getTop3WithSorting_game_with_achievements(OwnedGames.games, playerAchievements),
+                update_time: body.update_time
+                }
 
             try {
                 if (need_cache) {
@@ -999,7 +1060,6 @@
 
         // 데이터 표시 함수
         function displayData(data) {
-            console.log(data)
             // 로딩 숨기기
             loadingElement.style.display = 'none';
             
@@ -1073,9 +1133,44 @@
                 });
             } else { achievementGames.parentElement.style.display = "none"; }
             
+            if (data.update_time && data.update_time - Date.now() > 1000 * 60 * 60 * 24 * 3) {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = "갱신";
+                lastRefreshTime.textContent = `최근 업데이트: ${LastDateFormat(data.update_time - Date.now())}`;
+            } else {
+                refreshBtn.disabled = true;
+                refreshBtn.textContent = "갱신";
+                if (data.update_time) {
+                    lastRefreshTime.textContent = `최근 업데이트: ${LastDateFormat(data.update_time - Date.now())}`;
+                } else {
+                    lastRefreshTime.textContent = ``;
+                }
+            }
             resultsContainer.style.display = 'block';
         }
-        
+
+
+        function LastDateFormat(ms) {
+            const minute = 60 * 1000;
+            const hour = 60 * minute;
+            const day = 24 * hour;
+            const month = 30 * day;
+            const year = 365 * day;
+
+            if (ms < minute) {
+                return "방금 전";
+            } else if (ms < hour) {
+                return Math.floor(ms / minute) + "분 전";
+            } else if (ms < day) {
+                return Math.floor(ms / hour) + "시간 전";
+            } else if (ms < month) {
+                return Math.floor(ms / day) + "일 전";
+            } else if (ms < year) {
+                return Math.floor(ms / month) + "개월 전";
+            } else {
+                return Math.floor(ms / year) + "년 전";
+            }
+        }
         // 게임 요소 생성 함수
         // document.createElement 처럼 작동하는 커스텀 함수를 만들어서 사용했습니다
         function createGameElement(game, how_display) {
@@ -1258,7 +1353,7 @@
                 }
             }
         });
-        // server.js에 open API 호출 코드가 있습니다 확인하여 주세요
+        
     </script>
 </body>
 </html>
