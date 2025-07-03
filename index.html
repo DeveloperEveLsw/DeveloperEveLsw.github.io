@@ -617,6 +617,10 @@
         
         let apiKey = null
 
+        //const apiUrl = "https://3.27.71.87.nip.io"
+        const apiUrl = "http://localhost:3000"
+
+
         // DOM 요소
         // 문서 객체들을 전역에 할당하여 함수내에서 사용합니다
         const searchForm = document.getElementById('search-form');
@@ -813,7 +817,7 @@
             ).forEach((item)=>{
                 total_price += item.data.price_overview.initial
             })
-            console.log(total_price)
+            //console.log(total_price)
             return parseInt(total_price/100)
         }
 
@@ -839,7 +843,7 @@
             // ui 처리를 하였습니다
             let res;
             try{
-                res =  await fetch(`https://3.27.71.87.nip.io/api?steamId=${steamId}`+ (apiKey ? `&apiKey=${apiKey}` : ``)
+                res =  await fetch(`${apiUrl}/api?steamId=${steamId}`+ (apiKey ? `&apiKey=${apiKey}` : ``)
                 ).then((response)=>{
                     if (response.status === 403) {         
                         errorMessage.innerText = "프로필 비공개 계정입니다."
@@ -878,6 +882,15 @@
 
             // 위의 검사를 통해 응답이 잘 왔으면 json을 반환 받습니다
             const body = await res.json()
+
+
+            const need_cache = !!body.need_cache
+
+            if (!need_cache) {
+                console.log(body)
+                displayData(body)
+                return
+            }
 
             // 이제 body의 내용들을 각각의 변수에 풉니다
             const PlayerInfo = body.PlayerInfo;
@@ -954,8 +967,8 @@
                 }, (data)=> {
                     const price = parseInt(data.price/100);
                     const playTime = parseInt(data.playtime_forever/60)
-                    console.log(price)
-                    console.log(playTime)
+                    //console.log(price)
+                    //console.log(playTime)
                     return parseInt(price/playTime)
                 }),
 
@@ -967,13 +980,26 @@
                     getTop3WithSorting_game_with_achievements(OwnedGames.games, playerAchievements)
             }
 
-            // 데이터 표시시키는 함수에 data를 통쨰로 넘깁니다 
+            try {
+                if (need_cache) {
+                    fetch(`${apiUrl}/api/cache?steamId=${steamId}`, {
+                        method: 'POST',
+                        body: JSON.stringify(data),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                }
+            } catch(e) {
+                console.log(e)
+            }
+
             displayData(data);
         }
 
         // 데이터 표시 함수
         function displayData(data) {
-            //console.log(data)
+            console.log(data)
             // 로딩 숨기기
             loadingElement.style.display = 'none';
             
@@ -1182,7 +1208,7 @@
             // api key가 유요한지 확인하고 유효 할 경우에만 전역 변수 apiKey에 넣습니다
             setTimeout(async ()=> {
                 try {
-                    const res = await fetch(`https://3.27.71.87.nip.io/api/status?apiKey=${apiKey_byInput}`)
+                    const res = await fetch(`${apiUrl}/api/status?apiKey=${apiKey_byInput}`)
 
                     if (res.ok) {
                         apiKey = apiKey_byInput
